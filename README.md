@@ -45,6 +45,7 @@ npm run dev
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API key for location features | — |
+| `VITE_API_BASE_URL` | Django backend API base URL | `http://localhost:8000` |
 | `VITE_MAINTENANCE_MODE` | Set to `true` to show a maintenance page on all authenticated routes | `false` |
 
 ## Project Structure
