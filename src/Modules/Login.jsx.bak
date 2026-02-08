@@ -1,0 +1,96 @@
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import api from '../api'
+
+export default function Login() {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const navigate = useNavigate()
+
+  const { mutate, error } = useMutation({
+    mutationFn: async () => {
+      const response = await api.post('/api/login/', { username, password })
+      return response.data
+    },
+    onSuccess: async (data) => {
+      localStorage.setItem('authToken', data.token)
+      try {
+        const userResponse = await api.get('/api/user/info/')
+        const userData = userResponse.data.user
+        if (userData.isManager || userData.isAdministrator || userData.isOwner || userData.isSteward) {
+          navigate('/')
+        } else {
+          navigate('/profile')
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info:', error)
+        navigate('/') // fallback
+      }
+    }
+  })
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    mutate()
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-body-bg dark:bg-dark-body-bg">
+      {/* Gradient banner matching splash hero */}
+      <div className="bg-gradient-to-br from-primary to-indigo dark:from-dark-primary dark:to-dark-indigo py-12 px-6 text-center">
+        <Link to="/splash" className="text-3xl font-extrabold text-white">CallManager</Link>
+        <p className="text-blue-100 dark:text-blue-200 mt-2">Sign in to manage your workforce</p>
+      </div>
+
+      {/* Login card */}
+      <div className="flex-grow flex items-start justify-center px-6 -mt-8">
+        <div className="w-full max-w-md bg-card-bg dark:bg-dark-card-bg rounded-xl shadow-lg dark:shadow-dark-shadow p-8">
+          <h1 className="text-2xl font-bold mb-6 text-text-heading dark:text-dark-text-primary text-center">Login</h1>
+
+          {error && (
+            <p className="text-danger dark:text-dark-text-red text-sm text-center mb-4">
+              {error.response?.data?.message || 'Invalid credentials. Please try again.'}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary mb-1">Username</label>
+              <input
+                type="text"
+                name="username"
+                placeholder="Enter your username"
+                required
+                className="w-full p-3 border rounded-lg bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary mb-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+                className="w-full p-3 border rounded-lg bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-primary hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover text-white font-bold py-3 rounded-lg transition-colors shadow-md"
+            >
+              Sign In
+            </button>
+            <Link to="/forgot-password" className="text-primary dark:text-dark-text-blue hover:underline text-sm text-center">
+              Forgot Password?
+            </Link>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}

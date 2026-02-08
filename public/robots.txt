@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /login
+Disallow: /dash
+
+Sitemap: https://callman.work/sitemap.xml
