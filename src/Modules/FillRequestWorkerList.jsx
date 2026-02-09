@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '../api'
@@ -17,6 +17,7 @@ export function FillRequestWorkerList({
     const [perPage, setPerPage] = useState(10)
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedPhones, setSelectedPhones] = useState({})
+
 
     function formatPhoneNumber(phoneNumber) {
         if (!phoneNumber) return null
@@ -267,9 +268,13 @@ export function FillRequestWorkerList({
                                 </div>
                                 
                                 <div className="flex gap-2">
-                                    {worker.requested ? (
+                                    {worker.reserved ? (
+                                        <span className="bg-bg-available text-white dark:bg-transparent dark:text-dark-bg-available font-medium px-1 rounded">
+                                            Reserved
+                                        </span>
+                                    ) : worker.requested ? (
                                         <span className="text-text-green dark:text-dark-text-green font-medium">
-                                        Requested
+                                            Requested
                                         </span>
                                     ) : (
                                         <>
