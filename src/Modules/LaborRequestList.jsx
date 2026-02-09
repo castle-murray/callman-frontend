@@ -30,7 +30,7 @@ export function LaborRequestList({
     const handleRequestMutation = useMutation({
         mutationFn: async ({ laborRequest, action, avresponse }) => {
 
-            const response = await api.post(`/api/request/${laborRequest}/action/`, {
+            const response = await api.post(`/request/${laborRequest}/action/`, {
                 action: action,
                 response: avresponse
             })
@@ -48,7 +48,7 @@ export function LaborRequestList({
 
     const bulkConfirmMutation = useMutation({
         mutationFn: async (laborRequestIds) => {
-            const response = await api.post('/api/confirm/bulk/', {
+            const response = await api.post('/confirm/bulk/', {
                 labor_requests: laborRequestIds.map(id => ({ id }))
             })
             return response.data

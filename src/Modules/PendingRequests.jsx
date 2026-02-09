@@ -9,7 +9,7 @@ export function PendingRequests() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['pendingRequests'],
         queryFn: async () => {
-            const response = await api.get('/api/pending-count/')
+            const response = await api.get('/pending-count/')
             return response.data
         }
     })

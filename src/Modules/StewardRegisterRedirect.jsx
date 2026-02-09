@@ -8,7 +8,7 @@ export function StewardRegisterRedirect() {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        api.get(`/api/steward/register/${token}/`)
+        api.get(`/steward/register/${token}/`)
             .then(({ data }) => {
                 localStorage.setItem('registerPhone', data.phone)
                 localStorage.setItem('registerToken', data.token)

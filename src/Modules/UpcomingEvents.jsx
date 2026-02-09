@@ -6,7 +6,7 @@ export function UpcomingEvents() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['upcomingEvents'],
         queryFn: async () => {
-            const response = await api.get('/api/upcoming-event-count/')
+            const response = await api.get('/upcoming-event-count/')
             return response.data
         }
     })

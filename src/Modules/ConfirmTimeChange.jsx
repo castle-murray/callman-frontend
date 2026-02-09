@@ -14,14 +14,14 @@ export function ConfirmTimeChange() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['confirmTimeChange', token],
         queryFn: async () => {
-            const response = await api.get(`/api/call/confirm-time-change/${token}/`)
+            const response = await api.get(`/call/confirm-time-change/${token}/`)
             return response.data
         }
     })
 
     const submitMutation = useMutation({
         mutationFn: async (formData) => {
-            const response = await api.post(`/api/call/confirm-time-change/${token}/`, formData)
+            const response = await api.post(`/call/confirm-time-change/${token}/`, formData)
             return response.data
         },
         onSuccess: (data) => {

@@ -16,14 +16,14 @@ export function Skills() {
     const { data: skills, error, isLoading } = useQuery({
         queryKey: ['skills'],
         queryFn: async () => {
-            const response = await api.get('/api/skills/')
+            const response = await api.get('/skills/')
             return response.data
         }
     })
 
     const skillMutation = useMutation({
         mutationFn: async (skillData) => {
-            const response = await api.post('/api/skills/', skillData)
+            const response = await api.post('/skills/', skillData)
             return response.data
         },
         onSuccess: () => {

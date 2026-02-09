@@ -40,7 +40,7 @@ export function UserRegistration() {
 
     const startMutation = useMutation({
         mutationFn: async (phone) => {
-            const response = await api.post('/api/user/register/start/', { phone, token: formData.token })
+            const response = await api.post('/user/register/start/', { phone, token: formData.token })
             return response.data
         },
         onSuccess: (data) => {

@@ -13,7 +13,7 @@ export function ClockInOut() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get(`/api/clock-in/${token}/`)
+        const response = await api.get(`/clock-in/${token}/`)
         setData(response.data)
       } catch (error) {
         console.error('Fetch error:', error)
@@ -28,13 +28,13 @@ export function ClockInOut() {
 
   const handleSubmit = async (callTimeId, action) => {
     try {
-      const response = await api.post(`/api/clock-in/${token}/`, {
+      const response = await api.post(`/clock-in/${token}/`, {
         call_time_id: callTimeId,
         action: action
       })
       addMessage(response.data.message || 'Action completed successfully', 'success')
       // Refresh the data to update statuses
-      const fetchResponse = await api.get(`/api/clock-in/${token}/`)
+      const fetchResponse = await api.get(`/clock-in/${token}/`)
       setData(fetchResponse.data)
     } catch (error) {
       console.error('Submit error:', error)

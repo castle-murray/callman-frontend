@@ -18,11 +18,10 @@ export function EditLaborReqirement() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['editLaborReqirement', laborSlug],
         queryFn: async () => {
-            const response = await api.get(`/api/labor/${laborSlug}/edit/`)
+            const response = await api.get(`/labor/${laborSlug}/edit/`)
             return response.data
         }
     })
-    console.log(data)
     const eventSlug = location.state?.eventSlug || data?.event_slug
 
     const { labor_requirement, labor_types } = data || {}
@@ -40,7 +39,7 @@ export function EditLaborReqirement() {
 
     const editLaborMutation = useMutation({
         mutationFn: async (laborData) => {
-            const response = await api.post(`/api/labor/${laborSlug}/edit/`, laborData)
+            const response = await api.post(`/labor/${laborSlug}/edit/`, laborData)
             return response.data
         },
         onSuccess: () => {

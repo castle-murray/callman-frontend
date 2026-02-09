@@ -54,7 +54,7 @@ export function FillRequestWorkerList({
 
     const requestWorkerMutation = useMutation({
         mutationFn: async (workerId) => {
-            const response = await api.post(`/api/request/${slug}/worker/`, {
+            const response = await api.post(`/request/${slug}/worker/`, {
                 worker_id: workerId,
                 action: 'request'
             })
@@ -72,7 +72,7 @@ export function FillRequestWorkerList({
 
     const reserveWorkerMutation = useMutation({
         mutationFn: async (workerId) => {
-            const response = await api.post(`/api/request/${slug}/worker/`, {
+            const response = await api.post(`/request/${slug}/worker/`, {
                 worker_id: workerId,
                 action: 'reserve'
             })
@@ -91,7 +91,7 @@ export function FillRequestWorkerList({
     const reserveWorkersMutation = useMutation({
         mutationFn: async () => {
             const promises = selectedWorkers.map(workerId =>
-                api.post(`/api/request/${slug}/worker/`, {
+                api.post(`/request/${slug}/worker/`, {
                     worker_id: workerId,
                     action: 'reserve'
                 })

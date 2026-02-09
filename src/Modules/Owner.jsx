@@ -24,7 +24,7 @@ export function Owner() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['owner'],
         queryFn: async () => {
-            const response = await api.get('/api/company/settings/')
+            const response = await api.get('/company/settings/')
             return response.data
         }
     })
@@ -49,7 +49,7 @@ export function Owner() {
 
     const ownerMutation = useMutation({
         mutationFn: async (ownerData) => {
-            const response = await api.patch('/api/company/settings/', ownerData)
+            const response = await api.patch('/company/settings/', ownerData)
             return response.data
         },
         onSuccess: () => {

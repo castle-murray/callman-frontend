@@ -13,7 +13,7 @@ export function ResetPassword() {
 
     const { mutate, isPending, error } = useMutation({
         mutationFn: async () => {
-            const response = await api.post(`/api/reset-password/${token}/`, {
+            const response = await api.post(`/reset-password/${token}/`, {
                 new_password: newPassword,
                 confirm_password: confirmPassword
             })

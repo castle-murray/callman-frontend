@@ -20,7 +20,7 @@ export function VerifyRegistration() {
 
     const registerMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await api.post('/api/user/register/', data)
+            const response = await api.post('/user/register/', data)
             return response.data
         },
         onSuccess: () => {

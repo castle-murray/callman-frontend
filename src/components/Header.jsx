@@ -31,7 +31,7 @@ export default function Header({ children, title = "CallManager" }) {
   const { data: user, error: userError, isLoading: userLoading } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const response = await api.get('/api/user/info/')
+      const response = await api.get('/user/info/')
       return response.data
     },
     enabled: isAuthenticated,
@@ -40,7 +40,6 @@ export default function Header({ children, title = "CallManager" }) {
     refetchOnWindowFocus: false,
     refetchOnMount: false
   })
-  console.log(user)
 
   const { notifications, unreadCount, markAsRead, deleteNotification, clearAllNotifications, clearReadNotifications } = useWebSocketNotifications()
 

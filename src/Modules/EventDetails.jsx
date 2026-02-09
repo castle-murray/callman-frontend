@@ -24,14 +24,14 @@ export function EventDetails() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['eventDetails', slug, refreshKey],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${slug}`)
+            const response = await api.get(`/event/${slug}`)
             return response.data
         }
     })
 
     const sendMessagesMutation = useMutation({
         mutationFn: async () => {
-            const response = await api.post(`/api/event/${slug}/send-messages/`)
+            const response = await api.post(`/event/${slug}/send-messages/`)
             return response.data
         },
         onSuccess: (data) => {
@@ -45,7 +45,7 @@ export function EventDetails() {
 
     const deleteCallTimeMutation = useMutation({
         mutationFn: async (callTimeSlug) => {
-            const response = await api.delete(`/api/call-times/${callTimeSlug}/delete/`)
+            const response = await api.delete(`/call-times/${callTimeSlug}/delete/`)
             return response.data
         },
         onMutate: async (callTimeSlug) => {
@@ -75,7 +75,7 @@ export function EventDetails() {
 
     const sendCallTimeMessages = async (callTimeSlug) => {
         try {
-            const response = await api.post(`/api/call-times/${callTimeSlug}/send-messages/`)
+            const response = await api.post(`/call-times/${callTimeSlug}/send-messages/`)
             const type = response.data.message.toLowerCase().includes('no') || response.data.message.toLowerCase().includes('error') ? 'error' : 'success'
             addMessage(response.data.message, type)
         } catch (error) {
@@ -85,7 +85,7 @@ export function EventDetails() {
 
     const sendReminder = async (callTimeSlug) => {
         try {
-            const response = await api.post(`/api/call-times/${callTimeSlug}/send-reminder/`)
+            const response = await api.post(`/call-times/${callTimeSlug}/send-reminder/`)
             addMessage(response.data.message, 'success')
         } catch (error) {
             addMessage('Error sending reminder: ' + (error.response?.data?.message || error.message), 'error')

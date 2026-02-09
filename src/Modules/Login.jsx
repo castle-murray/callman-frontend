@@ -11,13 +11,13 @@ export default function Login() {
 
   const { mutate, error } = useMutation({
     mutationFn: async () => {
-      const response = await api.post('/api/login/', { username, password })
+      const response = await api.post('/login/', { username, password })
       return response.data
     },
     onSuccess: async (data) => {
       localStorage.setItem('authToken', data.token)
       try {
-        const userResponse = await api.get('/api/user/info/')
+        const userResponse = await api.get('/user/info/')
         const userData = userResponse.data.user
         if (userData.isManager || userData.isAdministrator || userData.isOwner || userData.isSteward) {
           navigate('/dash')

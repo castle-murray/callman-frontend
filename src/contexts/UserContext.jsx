@@ -8,7 +8,7 @@ export function UserProvider({ children }) {
   const { data: user, isLoading } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const response = await api.get('/api/user/info/')
+      const response = await api.get('/user/info/')
       return response.data
     },
     staleTime: 5 * 60 * 1000,

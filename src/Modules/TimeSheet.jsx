@@ -30,14 +30,14 @@ export function TimeSheet() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['timeSheet', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/call-times/${slug}/tracking/`)
+            const response = await api.get(`/call-times/${slug}/tracking/`)
             return response.data
         }
     })
 
     const actionMutation = useMutation({
         mutationFn: async ({ requestId, action, data = {} }) => {
-            const response = await api.post(`/api/call-times/${slug}/tracking/`, { request_id: requestId, action, ...data })
+            const response = await api.post(`/call-times/${slug}/tracking/`, { request_id: requestId, action, ...data })
             return response.data
         },
         onSuccess: () => {

@@ -16,7 +16,7 @@ export function CallTimeRequestList() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['callTimeRequests', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/call-times/${slug}/requests/`)
+            const response = await api.get(`/call-times/${slug}/requests/`)
             return response.data
         }
 

@@ -11,7 +11,7 @@ export function Confirmations() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['callTimeConfirmations', callTimeSlug],
         queryFn: async () => {
-            const response = await api.get(`/api/call-times/${callTimeSlug}/confirmations/`)
+            const response = await api.get(`/call-times/${callTimeSlug}/confirmations/`)
             return response.data
         }
     })

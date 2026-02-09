@@ -6,7 +6,7 @@ export function DeclinedCount() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['declinedCount'],
         queryFn: async () => {
-            const response = await api.get('/api/declined-count/')
+            const response = await api.get('/declined-count/')
             return response.data
         }
     })

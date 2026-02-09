@@ -75,4 +75,4 @@ cd ~/projects/callman/callman
 python manage.py runserver
 ```
 
-The API is served at `http://localhost:8000/api/`. CORS is configured to allow requests from the Vite dev server.
+The API is served at `http://localhost:8000/`. CORS is configured to allow requests from the Vite dev server.

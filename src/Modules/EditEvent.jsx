@@ -22,7 +22,7 @@ export function EditEvent() {
     const { data, error: eventError, isLoading: eventLoading } = useQuery({
         queryKey: ['event', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${slug}`)
+            const response = await api.get(`/event/${slug}`)
             return response.data
         }
     })
@@ -30,14 +30,14 @@ export function EditEvent() {
     const { data: company, error: companyError, isLoading: companyLoading } = useQuery({
         queryKey: ['createEvent'],
         queryFn: async () => {
-            const response = await api.get('/api/create-event/')
+            const response = await api.get('/create-event/')
             return response.data
         }
     })
 
     const editEventMutation = useMutation({
         mutationFn: async (eventData) => {
-            const response = await api.patch(`/api/event/${slug}`, eventData)
+            const response = await api.patch(`/event/${slug}`, eventData)
             return response.data
         },
         onSuccess: () => {

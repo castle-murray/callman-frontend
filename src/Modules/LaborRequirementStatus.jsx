@@ -12,7 +12,7 @@ export function LaborRequirementStatus({
     
     const deleteMutation = useMutation({
         mutationFn: async () => {
-            const response = await api.delete(`/api/labor/${laborSlug}/delete/`)
+            const response = await api.delete(`/labor/${laborSlug}/delete/`)
             return response.data
         },
         onSuccess: () => {
@@ -29,7 +29,7 @@ export function LaborRequirementStatus({
     const { data: labor, isLoading, error } = useQuery({
         queryKey: ['laborRequirement', laborSlug],
         queryFn: async () => {
-            const response = await api.get(`/api/labor/${laborSlug}/status/`)
+            const response = await api.get(`/labor/${laborSlug}/status/`)
             return response.data
         }
     })

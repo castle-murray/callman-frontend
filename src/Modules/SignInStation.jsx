@@ -21,7 +21,7 @@ export function SignInStation() {
     useEffect(() => {
         const validate = async () => {
             try {
-                const response = await api.get(`/api/station/${token}/validate/`)
+                const response = await api.get(`/station/${token}/validate/`)
                 setEventName(response.data.event_name)
                 setExpiresAt(response.data.expires_at)
                 setValidating(false)
@@ -76,7 +76,7 @@ export function SignInStation() {
         const workerToken = match[1]
 
         try {
-            const response = await api.post(`/api/station/${token}/clock/`, {
+            const response = await api.post(`/station/${token}/clock/`, {
                 worker_token: workerToken,
             })
             setFeedback({

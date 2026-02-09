@@ -7,7 +7,7 @@ export function SignInStationModal({ isOpen, onClose, slug }) {
 
     const generateMutation = useMutation({
         mutationFn: async () => {
-            const response = await api.post(`/api/event/${slug}/generate-station/`)
+            const response = await api.post(`/event/${slug}/generate-station/`)
             return response.data
         },
         onSuccess: (data) => {

@@ -71,7 +71,7 @@ export function QRScanner() {
 
     // Clock in/out with QR
     try {
-      const response = await api.post(`/api/clock-in-qr/${token}/`)
+      const response = await api.post(`/clock-in-qr/${token}/`)
       const message = response.data.message || 'Clock action completed'
       setLastAction(message)
       setError('')

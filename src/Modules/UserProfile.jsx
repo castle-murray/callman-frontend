@@ -24,20 +24,19 @@ export function UserProfile() {
     const { data, isLoading, error } = useQuery({
         queryKey: ['userProfile'],
         queryFn: async () => {
-            const response = await api.get('/api/user/profile/')
+            const response = await api.get('/user/profile/')
             return response.data
         }
     })
     
-    console.log(data)
 
     const requestActionMutation = useMutation({
         mutationFn: async ({ requestId, action }) => {
             if (action === 'cancel') {
-                const response = await api.post(`/api/user/request/${requestId}/action/`, { action: 'cancel' })
+                const response = await api.post(`/user/request/${requestId}/action/`, { action: 'cancel' })
                 return response.data
             } else {
-                const response = await api.post(`/api/user/request/${requestId}/action/`, { action: "available", response: action })
+                const response = await api.post(`/user/request/${requestId}/action/`, { action: "available", response: action })
                 return response.data
             }
         },

@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import api from '../api';
 
 function ConfirmPage() {
   const { token } = useParams();
@@ -11,15 +12,10 @@ function ConfirmPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/confirm/${token}/`);
-        if (res.ok) {
-          const result = await res.json();
-          setData(result);
-        } else {
-          setError('Confirmation not found');
-        }
+        const res = await api.get(`/confirm/${token}/`);
+        setData(res.data);
       } catch (err) {
-        setError('Error loading confirmation');
+        setError('Confirmation not found');
       } finally {
         setLoading(false);
       }
@@ -30,20 +26,10 @@ function ConfirmPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:8000/api/confirm/${token}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ response }),
-      });
-      if (res.ok) {
-        alert('Response submitted successfully');
-      } else {
-        alert('Error submitting response');
-      }
+      await api.post(`/confirm/${token}/`, { response });
+      alert('Response submitted successfully');
     } catch (err) {
-      alert('Error submitting');
+      alert('Error submitting response');
     }
   };
 

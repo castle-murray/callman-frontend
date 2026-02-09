@@ -13,7 +13,7 @@ export function WorkerHistory() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['workerHistory', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/workers/${slug}/history/`)
+            const response = await api.get(`/workers/${slug}/history/`)
             return response.data
         }
     })

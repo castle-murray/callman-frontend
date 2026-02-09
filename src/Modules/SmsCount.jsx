@@ -6,7 +6,7 @@ export function SMSCount() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['smsCount'],
         queryFn: async () => {
-            const response = await api.get('/api/sms-count/')
+            const response = await api.get('/sms-count/')
             return response.data
         }
     })

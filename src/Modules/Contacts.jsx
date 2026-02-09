@@ -79,7 +79,7 @@ export function Contacts() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['contacts'],
         queryFn: async () => {
-            const response = await api.get('/api/workers/')
+            const response = await api.get('/workers/')
             return response.data
         }
     })
@@ -88,7 +88,7 @@ export function Contacts() {
     const laborTypesData = data?.labor_types || []
 
     const addMutation = useMutation({
-        mutationFn: (worker) => api.post('/api/workers/', worker),
+        mutationFn: (worker) => api.post('/workers/', worker),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
             setShowAddForm(false)
@@ -97,7 +97,7 @@ export function Contacts() {
     })
 
     const editMutation = useMutation({
-        mutationFn: ({id, worker}) => api.patch('/api/workers/', { ...worker, id }),
+        mutationFn: ({id, worker}) => api.patch('/workers/', { ...worker, id }),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
             setEditingId(null)
@@ -106,7 +106,7 @@ export function Contacts() {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: (id) => api.delete('/api/workers/', { data: { id } }),
+        mutationFn: (id) => api.delete('/workers/', { data: { id } }),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
         },
@@ -119,7 +119,7 @@ export function Contacts() {
     })
 
     const putMutation = useMutation({
-        mutationFn: (data) => api.put('/api/workers/', data),
+        mutationFn: (data) => api.put('/workers/', data),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
             setAddingAlt(null)
@@ -128,7 +128,7 @@ export function Contacts() {
     })
 
     const editAltMutation = useMutation({
-        mutationFn: (data) => api.patch('/api/workers/', data),
+        mutationFn: (data) => api.patch('/workers/', data),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
             setEditingAlt(null)
@@ -138,7 +138,7 @@ export function Contacts() {
     })
 
     const deleteAltMutation = useMutation({
-        mutationFn: (data) => api.delete('/api/workers/', { data: data }),
+        mutationFn: (data) => api.delete('/workers/', { data: data }),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
         },
@@ -151,7 +151,7 @@ export function Contacts() {
     })
 
     const updateLaborMutation = useMutation({
-        mutationFn: (data) => api.patch('/api/workers/', data),
+        mutationFn: (data) => api.patch('/workers/', data),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
             setEditingLaborTypes(null)
@@ -164,7 +164,7 @@ export function Contacts() {
     })
 
     const makePrimaryMutation = useMutation({
-        mutationFn: (data) => api.put('/api/workers/', data),
+        mutationFn: (data) => api.put('/workers/', data),
         onSuccess: () => {
             queryClient.invalidateQueries(['contacts'])
         }

@@ -35,7 +35,7 @@ export function Locations() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['locations'],
         queryFn: async () => {
-            const response = await api.get('/api/location-profiles/')
+            const response = await api.get('/location-profiles/')
             return response.data
         }
     })
@@ -53,7 +53,7 @@ useEffect(() => {
             if (!window.google || !window.google.maps || !window.google.maps.places) {
                 if (!existingScript) {
                     const script = document.createElement('script')
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`
+                    script.src = `https://maps.googleapis.com/maps/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`
                     script.async = true
                     script.defer = true
                     
@@ -127,10 +127,10 @@ useEffect(() => {
     const locationMutation = useMutation({
         mutationFn: async (locationData) => {
             if (locationData.method === 'DELETE') {
-                const response = await api.delete(`/api/location-profiles/`, { data: { location_id: locationData.location_id } })
+                const response = await api.delete(`/location-profiles/`, { data: { location_id: locationData.location_id } })
                 return response.data
             } else if (locationData.method === 'PATCH') {
-                const response = await api.patch(`/api/location-profiles/`, { 
+                const response = await api.patch(`/location-profiles/`, { 
                     location_id: locationData.location_id,
                     name: locationData.name,
                     address: locationData.address,
@@ -141,7 +141,7 @@ useEffect(() => {
                 return response.data
             } else {
                 // POST for adding new locations
-                const response = await api.post('/api/location-profiles/', {
+                const response = await api.post('/location-profiles/', {
                     name: locationData.name,
                     address: locationData.address,
                     minimum_hours: locationData.minimum_hours,

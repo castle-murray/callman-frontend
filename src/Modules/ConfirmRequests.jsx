@@ -13,15 +13,14 @@ export function ConfirmRequests() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['confirmRequests', slug, event_token],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${slug}/confirm/${event_token}/`)
+            const response = await api.get(`/event/${slug}/confirm/${event_token}/`)
             return response.data
         }
     })
 
-    console.log(data)
     const confirmMutation = useMutation({
         mutationFn: async ({ requestId, response }) => {
-            const responseData = await api.post(`/api/event/${slug}/confirm/${event_token}/`, {
+            const responseData = await api.post(`/event/${slug}/confirm/${event_token}/`, {
                 [`response_${requestId}`]: response
             })
             return responseData.data
@@ -41,7 +40,7 @@ export function ConfirmRequests() {
 
     const handleRegister = async (phone) => {
         try {
-            const response = await api.post('/api/user/register/', { phone })
+            const response = await api.post('/user/register/', { phone })
             if (response.data.message === 'User created successfully') {
                 navigate('/login')
             } else {

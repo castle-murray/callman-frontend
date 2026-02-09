@@ -9,7 +9,7 @@ export function ForgotPassword() {
 
     const { mutate, isPending, error } = useMutation({
         mutationFn: async () => {
-            const response = await api.post('/api/forgot-password/', { email })
+            const response = await api.post('/forgot-password/', { email })
             return response.data
         },
         onSuccess: () => {

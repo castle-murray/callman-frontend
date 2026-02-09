@@ -21,7 +21,7 @@ export function CreateEvent() {
     const { data: company, error, isLoading } = useQuery({
         queryKey: ['createEvent'],
         queryFn: async () => {
-            const response = await api.get('/api/create-event/')
+            const response = await api.get('/create-event/')
             return response.data
         }
     })
@@ -29,7 +29,7 @@ export function CreateEvent() {
 
     const createEventMutation = useMutation({
         mutationFn: async (eventData) => {
-            const response = await api.post('/api/create-event/', eventData)
+            const response = await api.post('/create-event/', eventData)
             return response.data
         },
         onSuccess: (data) => {

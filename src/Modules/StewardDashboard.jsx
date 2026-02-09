@@ -8,7 +8,7 @@ export function StewardDashboard() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['stewardEvents'],
         queryFn: async () => {
-            const response = await api.get('/api/steward/events/')
+            const response = await api.get('/steward/events/')
             return response.data
         }
     })

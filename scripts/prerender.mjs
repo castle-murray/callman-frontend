@@ -51,14 +51,11 @@ function startServer() {
 }
 
 async function prerender() {
-  console.log('Starting static server...')
   const server = await startServer()
 
-  console.log('Launching browser...')
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
 
   for (const route of ROUTES) {
-    console.log(`Prerendering ${route}...`)
     const page = await browser.newPage()
     await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'networkidle0' })
 
@@ -68,16 +65,13 @@ async function prerender() {
     const dir = join(DIST, route)
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, 'index.html'), html)
-    console.log(`  -> wrote dist${route}/index.html`)
     await page.close()
   }
 
   await browser.close()
   server.close()
-  console.log('Prerendering complete.')
 }
 
 prerender().catch((err) => {
-  console.error('Prerender failed:', err)
   process.exit(1)
 })

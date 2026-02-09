@@ -16,14 +16,14 @@ export function FillRequestList() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['fillRequestList', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/request/${slug}/fill-list/`)
+            const response = await api.get(`/request/${slug}/fill-list/`)
             return response.data
         }
     })
 
     const sendListedMutation = useMutation({
         mutationFn: async () => {
-            const response = await api.post(`/api/request/${slug}/send-messages/`)
+            const response = await api.post(`/request/${slug}/send-messages/`)
             return response.data
         },
         onSuccess: (data) => {

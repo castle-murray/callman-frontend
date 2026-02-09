@@ -18,7 +18,7 @@ export function EditCallTime() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['eventDetails', eventSlug],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${eventSlug}`)
+            const response = await api.get(`/event/${eventSlug}`)
             return response.data
         }
     })
@@ -41,7 +41,7 @@ export function EditCallTime() {
 
     const callTimeMutation = useMutation({
         mutationFn: async (callTimeData) => {
-            const response = await api.patch(`/api/call-times/${callTimeSlug}/edit/`, callTimeData)
+            const response = await api.patch(`/call-times/${callTimeSlug}/edit/`, callTimeData)
             return response.data
         },
         onSuccess: (data) => {

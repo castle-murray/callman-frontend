@@ -21,14 +21,14 @@ function StewardInvite() {
     const { data: workersData } = useQuery({
         queryKey: ['workers'],
         queryFn: async () => {
-            const response = await api.get('/api/workers/')
+            const response = await api.get('/workers/')
             return response.data
         }
     })
 
     const inviteMutation = useMutation({
         mutationFn: async (worker) => {
-            const response = await api.post('/api/send-steward-invite/', {
+            const response = await api.post('/send-steward-invite/', {
                 phone: worker.phone_number,
                 name: worker.name
             })
@@ -208,7 +208,7 @@ export function ListEvents() {
   const { data, error, isLoading } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const response = await api.get('/api/events/list')
+      const response = await api.get('/events/list')
       for (const event of response.data) {
         if (event.location_profile) {
           event.location = event.location_profile.name
@@ -224,14 +224,14 @@ export function ListEvents() {
   const { data: stewards } = useQuery({
     queryKey: ['stewards'],
     queryFn: async () => {
-      const response = await api.get('/api/stewards/')
+      const response = await api.get('/stewards/')
       return response.data
     }
   })
 
   const assignStewardMutation = useMutation({
     mutationFn: async ({ eventSlug, stewardId }) => {
-      const response = await api.post(`/api/event/${eventSlug}/assign-steward/`, { steward_id: stewardId })
+      const response = await api.post(`/event/${eventSlug}/assign-steward/`, { steward_id: stewardId })
       return response.data
     },
     onSuccess: () => {
@@ -245,7 +245,7 @@ export function ListEvents() {
 
   const deleteEventMutation = useMutation({
       mutationFn: async (eventSlug) => {
-          const response = await api.delete(`/api/event/${eventSlug}`)
+          const response = await api.delete(`/event/${eventSlug}`)
           return response.data
       },
       onSuccess: () => {

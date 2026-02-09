@@ -13,7 +13,7 @@ export function AddLaborToCall() {
     const { data, isLoading, error } = useQuery({
         queryKey: ['addLaborToCall', callTimeSlug],
         queryFn: async () => {
-            const response = await api.get(`/api/call-times/${callTimeSlug}/add-labor/`)
+            const response = await api.get(`/call-times/${callTimeSlug}/add-labor/`)
             return response.data
         }
     })
@@ -41,7 +41,7 @@ export function AddLaborToCall() {
 
     const addLaborMutation = useMutation({
         mutationFn: async (laborData) => {
-            const response = await api.post(`/api/call-times/${callTimeSlug}/add-labor/`, laborData)
+            const response = await api.post(`/call-times/${callTimeSlug}/add-labor/`, laborData)
             return response.data
         },
         onSuccess: () => {

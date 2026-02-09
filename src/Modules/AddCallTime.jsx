@@ -20,7 +20,7 @@ export function AddCallTime() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['eventDetails', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${slug}`)
+            const response = await api.get(`/event/${slug}`)
             return response.data
         }
     })
@@ -44,10 +44,10 @@ export function AddCallTime() {
     const callTimeMutation = useMutation({
         mutationFn: async (callTimeData) => {
             if (copySlug) {
-                const response = await api.post(`/api/call-time/${copySlug}/copy/`, callTimeData)
+                const response = await api.post(`/call-time/${copySlug}/copy/`, callTimeData)
                 return response.data
             } else {
-                const response = await api.post(`/api/call-time/${slug}/add-call-time/`, callTimeData)
+                const response = await api.post(`/call-time/${slug}/add-call-time/`, callTimeData)
                 return response.data
             }
         },

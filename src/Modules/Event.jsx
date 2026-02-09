@@ -11,7 +11,7 @@ export function Event() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['event', slug],
         queryFn: async () => {
-            const response = await api.get(`/api/event/${slug}/`)
+            const response = await api.get(`/event/${slug}/`)
 
             return response.data
             
