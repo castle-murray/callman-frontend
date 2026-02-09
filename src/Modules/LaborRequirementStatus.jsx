@@ -42,17 +42,11 @@ export function LaborRequirementStatus({
             <div className="flex items-center">
                 <span className="ml-2">
                     <a href={`/dash/request/${laborSlug}/fill-list`} className="text-text-primary hover:underline dark:text-dark-text-primary dark:hover:text-dark-primary-hover">
-                        <div className="flex flex-col md:flex-row">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                             <div className="mr-2">
                                 {labor.job} - {labor.labor_requirement.needed_labor}
                             </div>
                     <div className="flex items-center space-x-1">
-                        {labor.is_filled && !labor.is_overbooked && (
-                            <div className="text-success dark:text-dark-success">Filled</div>
-                        )}
-                        {labor.is_overbooked && (
-                            <div className="text-danger lg:mr-2">Overbooked by {labor.overbooked}</div>
-                        )}
                         <div className="flex items-center space-x-1">
                                 <TooltipSpan
                                     tooltip={`Confirmed: ${labor.confirmed}`}
@@ -75,6 +69,12 @@ export function LaborRequirementStatus({
                                         {labor.declined}
                                 </TooltipSpan>
                         </div>
+                        {labor.confirmed === labor.labor_requirement.needed_labor && (
+                            <div className="text-success dark:text-dark-success ml-2">Filled</div>
+                        )}
+                        {labor.confirmed > labor.labor_requirement.needed_labor && (
+                            <div className="text-danger ml-2">Overbooked by {labor.confirmed - labor.labor_requirement.needed_labor}</div>
+                        )}
                     </div>
                         </div>
                     </a>
