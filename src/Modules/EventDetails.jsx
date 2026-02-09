@@ -20,6 +20,7 @@ export function EventDetails() {
     const { addMessage } = useMessages()
     const [refreshKey, setRefreshKey] = useState(0)
     const [stationModalOpen, setStationModalOpen] = useState(false)
+    const [isLegendOpen, setIsLegendOpen] = useState(false)
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['eventDetails', slug, refreshKey],
@@ -272,6 +273,41 @@ export function EventDetails() {
                     </button>
                 </div>
             </div>
+            <details onToggle={(e) => setIsLegendOpen(e.target.open)} className="border border-gray-200 dark:border-dark-border rounded-lg p-4 mt-4 group">
+                <summary className="text-2xl font-semibold cursor-pointer flex justify-between">
+                    <span>{isLegendOpen ? '−' : '+'} Legend</span>
+                </summary>
+                <div className="overflow-hidden transition-all duration-300 max-h-0 group-open:max-h-96">
+                    <div className="mt-4 space-y-2">
+                        <div className="flex flex-wrap gap-4">
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-success dark:bg-dark-success rounded-full mr-2"></div>
+                                <span className="text-text-primary dark:text-dark-text-primary">Confirmed</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-bg-available dark:bg-dark-bg-available rounded-full mr-2"></div>
+                                <span className="text-text-primary dark:text-dark-text-primary">Available</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-yellow dark:bg-dark-yellow rounded-full mr-2"></div>
+                                <span className="text-text-primary dark:text-dark-text-primary">Pending</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 bg-danger dark:bg-dark-danger rounded-full mr-2"></div>
+                                <span className="text-text-primary dark:text-dark-text-primary">Declined</span>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="text-success dark:text-dark-success mr-2 font-semibold">Filled</span>
+                                <span className="text-text-primary dark:text-dark-text-primary">Filled Status</span>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="text-danger dark:text-dark-danger mr-2 font-semibold">Overbooked</span>
+                                <span className="text-text-primary dark:text-dark-text-primary">Overbooked Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
             <SignInStationModal isOpen={stationModalOpen} onClose={() => setStationModalOpen(false)} slug={slug} />
         </div>
     )
