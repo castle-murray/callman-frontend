@@ -11,7 +11,7 @@ export default function Login() {
 
   const { mutate, error } = useMutation({
     mutationFn: async () => {
-      const response = await api.post('/login/', { username, password })
+      const response = await api.post('/api/login/', { username, password })
       return response.data
     },
     onSuccess: async (data) => {

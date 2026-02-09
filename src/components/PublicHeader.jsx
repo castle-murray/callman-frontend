@@ -10,6 +10,8 @@ export function PublicHeader({ className = '' }) {
     return isDark
   })
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode
     setIsDarkMode(newMode)
@@ -39,16 +41,35 @@ export function PublicHeader({ className = '' }) {
               </svg>
             )}
           </button>
-          <Link to="/" className={linkClass}>Home</Link>
-          <Link to="/about" className={linkClass}>About</Link>
-          <Link to="/demo" className={linkClass}>Demo</Link>
-          {isAuthenticated ? (
-            <Link to="/dash" className={linkClass}>Dashboard</Link>
-          ) : (
-            <Link to="/login" className={linkClass}>Login</Link>
-          )}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link to="/" className={linkClass}>Home</Link>
+            <Link to="/about" className={linkClass}>About</Link>
+            <Link to="/demo" className={linkClass}>Demo</Link>
+            {isAuthenticated ? (
+              <Link to="/dash" className={linkClass}>Dashboard</Link>
+            ) : (
+              <Link to="/login" className={linkClass}>Login</Link>
+            )}
+          </div>
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 rounded-lg hover:bg-body-bg dark:hover:bg-dark-body-bg text-text-secondary dark:text-dark-text-secondary">
+            <span className="block w-5 h-0.5 bg-current mb-1"></span>
+            <span className="block w-5 h-0.5 bg-current mb-1"></span>
+            <span className="block w-5 h-0.5 bg-current"></span>
+          </button>
         </div>
       </div>
+      {isMenuOpen && (
+        <div className="md:hidden absolute top-full right-0 bg-card-bg dark:bg-dark-card-bg shadow-md rounded-b-md p-4 flex flex-col space-y-2 w-48">
+          <Link to="/" className={linkClass} onClick={() => setIsMenuOpen(false)}>Home</Link>
+          <Link to="/about" className={linkClass} onClick={() => setIsMenuOpen(false)}>About</Link>
+          <Link to="/demo" className={linkClass} onClick={() => setIsMenuOpen(false)}>Demo</Link>
+          {isAuthenticated ? (
+            <Link to="/dash" className={linkClass} onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+          ) : (
+            <Link to="/login" className={linkClass} onClick={() => setIsMenuOpen(false)}>Login</Link>
+          )}
+        </div>
+      )}
     </nav>
   )
 }

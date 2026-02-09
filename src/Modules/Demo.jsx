@@ -234,9 +234,7 @@ function EventCard({ event }) {
 }
 
 export function Demo() {
-  const [liveDemo, setLiveDemo] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [includePast, setIncludePast] = useState(false)
+
 
   return (
     <div className="min-h-screen bg-body-bg dark:bg-dark-body-bg">
@@ -288,51 +286,7 @@ export function Demo() {
 
           {/* Event List */}
           <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow-md">
-            {liveDemo ? (
-              <>
-                <div className="mb-4 flex items-center space-x-4">
-                  <div className="relative w-full max-w-md">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search by name, location, or description"
-                      className="w-full p-2 pr-8 border rounded bg-card-bg text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border dark:focus:ring-dark-primary"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold"
-                      >
-                        &times;
-                      </button>
-                    )}
-                  </div>
-                  <label className="flex items-center text-text-primary dark:text-dark-text-primary whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={includePast}
-                      onChange={(e) => setIncludePast(e.target.checked)}
-                      className="h-4 w-4 text-text-blue dark:text-dark-text-blue mr-2"
-                    />
-                    Include Past Events
-                  </label>
-                </div>
-                <div className="space-y-4 max-h-[420px] overflow-y-auto">
-                  {(() => {
-                    const visible = includePast ? mockEvents : mockEvents.filter(e => !e.isPast)
-                    const filtered = filterEvents(visible, searchQuery).sort((a, b) => b.startDate - a.startDate)
-                    if (filtered.length === 0) {
-                      return <p className="text-text-secondary dark:text-dark-text-secondary py-4 text-center">No events match your search.</p>
-                    }
-                    return filtered.map((event) => (
-                      <EventCard key={event.name} event={event} />
-                    ))
-                  })()}
-                </div>
-              </>
-            ) : (
-              <>
+            <>
               <div className="mb-4 flex items-center space-x-4">
                 <input
                   type="text"
@@ -358,16 +312,7 @@ export function Demo() {
                   ))
                 })()}
               </div>
-              </>
-            )}
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => { setLiveDemo(!liveDemo); setSearchQuery(''); setIncludePast(false) }}
-                className="bg-primary text-dark-text-primary px-4 py-2 rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover transition-colors"
-              >
-                {liveDemo ? 'Back to Preview' : 'Try Live Demo'}
-              </button>
-            </div>
+            </>
           </div>
         </div>
       </section>
