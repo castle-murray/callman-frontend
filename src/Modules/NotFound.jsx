@@ -9,7 +9,7 @@ export function NotFound() {
     <div className="min-h-screen bg-gradient-to-br from-body-bg via-body-bg to-primary/5 dark:from-dark-body-bg dark:via-dark-body-bg dark:to-dark-primary/10 flex flex-col">
       <PublicHeader className="sticky top-0 z-10 bg-card-bg/80 dark:bg-dark-card-bg/80 backdrop-blur-sm shadow-md" />
 
-      <div className="flex-grow flex items-center justify-center px-6">
+      <main className="flex-grow flex items-center justify-center px-6">
         <div className="text-center">
           {/* Decorative background circles */}
           <div className="relative inline-block mb-8">
@@ -44,7 +44,7 @@ export function NotFound() {
             )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

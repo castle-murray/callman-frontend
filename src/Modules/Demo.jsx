@@ -246,6 +246,7 @@ export function Demo() {
 
       <PublicHeader />
 
+      <main>
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary to-indigo dark:from-dark-primary dark:to-dark-indigo py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -616,6 +617,7 @@ export function Demo() {
           </Link>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="py-6 px-6 border-t border-border-light dark:border-dark-border">

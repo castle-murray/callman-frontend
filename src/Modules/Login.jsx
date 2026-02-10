@@ -43,7 +43,7 @@ export default function Login() {
       <PublicHeader />
 
       {/* Split layout */}
-      <div className="flex-grow flex">
+      <main className="flex-grow flex">
         {/* Left side — branding panel */}
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-indigo dark:from-dark-primary dark:to-dark-indigo flex-col justify-center items-center px-12">
           <h2 className="text-5xl font-extrabold text-white mb-4">CallManager</h2>
@@ -105,7 +105,7 @@ export default function Login() {
           </form>
         </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
