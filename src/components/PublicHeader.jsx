@@ -29,6 +29,7 @@ export function PublicHeader({ className = '' }) {
         <div className="flex items-center space-x-4">
           <button
             onClick={toggleDarkMode}
+            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             className="p-2 rounded-lg hover:bg-body-bg dark:hover:bg-dark-body-bg text-text-secondary dark:text-dark-text-secondary"
           >
             {isDarkMode ? (
@@ -51,7 +52,7 @@ export function PublicHeader({ className = '' }) {
               <Link to="/login" className={linkClass}>Login</Link>
             )}
           </div>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 rounded-lg hover:bg-body-bg dark:hover:bg-dark-body-bg text-text-secondary dark:text-dark-text-secondary">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle navigation menu" className="md:hidden p-2 rounded-lg hover:bg-body-bg dark:hover:bg-dark-body-bg text-text-secondary dark:text-dark-text-secondary">
             <span className="block w-5 h-0.5 bg-current mb-1"></span>
             <span className="block w-5 h-0.5 bg-current mb-1"></span>
             <span className="block w-5 h-0.5 bg-current"></span>
