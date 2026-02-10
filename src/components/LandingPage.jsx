@@ -25,7 +25,7 @@ export default function LandingPage() {
             schedule labor, track time, and manage your workforce from a single dashboard.
           </p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/contact')}
             className="bg-white text-blue-700 font-bold py-3 px-10 rounded-lg text-lg hover:bg-blue-50 transition-colors shadow-lg"
           >
             Get Started
