@@ -17,10 +17,7 @@ function logout() {
 export default function Header({ children, title = "CallManager" }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme') || 'light'
-    const isDark = savedTheme === 'dark'
-    // Apply theme immediately
-    document.documentElement.classList.toggle('dark', isDark)
-    return isDark
+    return savedTheme === 'dark'
   })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -61,6 +58,7 @@ export default function Header({ children, title = "CallManager" }) {
     setIsDarkMode(newMode)
     const theme = newMode ? 'dark' : 'light'
     localStorage.setItem('theme', theme)
+    document.documentElement.classList.add('theme-transitioning')
     if (newMode) {
       document.documentElement.classList.add('dark')
       document.documentElement.classList.remove('light')
@@ -72,7 +70,7 @@ export default function Header({ children, title = "CallManager" }) {
       document.documentElement.classList.remove('dark')
       document.documentElement.classList.add('light')
     }
-    document.documentElement.classList.toggle('dark', newMode)
+    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 350)
   }
 
 

@@ -57,6 +57,7 @@ async function prerender() {
 
   for (const route of ROUTES) {
     const page = await browser.newPage()
+    await page.setViewport({ width: 390, height: 844 })
     await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'networkidle0' })
 
     let html = await page.content()

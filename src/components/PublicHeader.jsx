@@ -5,9 +5,7 @@ export function PublicHeader({ className = '' }) {
   const isAuthenticated = !!localStorage.getItem('authToken')
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme') || 'light'
-    const isDark = savedTheme === 'dark'
-    document.documentElement.classList.toggle('dark', isDark)
-    return isDark
+    return savedTheme === 'dark'
   })
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -16,8 +14,10 @@ export function PublicHeader({ className = '' }) {
     const newMode = !isDarkMode
     setIsDarkMode(newMode)
     localStorage.setItem('theme', newMode ? 'dark' : 'light')
+    document.documentElement.classList.add('theme-transitioning')
     document.documentElement.classList.toggle('dark', newMode)
     document.documentElement.classList.toggle('light', !newMode)
+    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 350)
   }
 
   const linkClass = "text-primary dark:text-dark-text-blue font-medium hover:underline"
