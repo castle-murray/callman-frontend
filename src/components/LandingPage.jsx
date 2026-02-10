@@ -20,7 +20,7 @@ export default function LandingPage() {
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
             Staff Smarter.<br />Not Harder.
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 dark:text-blue-200 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-blue-50 dark:text-blue-100 mb-10 max-w-2xl mx-auto">
             CallManager is the all-in-one platform for event staffing — automate SMS requests,
             schedule labor, track time, and manage your workforce from a single dashboard.
           </p>
