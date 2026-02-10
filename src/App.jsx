@@ -1,41 +1,46 @@
+import { lazy, Suspense } from 'react'
 import { useRoutes, useLocation, Navigate } from 'react-router-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
 import Layout from './components/Layout'
 import LandingPage from './components/LandingPage'
 import { Providers } from './providers'
-import { ListEvents } from './Modules/ListEvents'
-import { EventDetails } from './Modules/EventDetails'
-import { Contacts } from './Modules/Contacts'
-import { WorkerHistory } from './Modules/WorkerHistory'
-import { CreateEvent } from './Modules/CreateEvent'
-import { QRScanner } from './Modules/QRScanner'
-import { ClockInOut } from './Modules/ClockInOut'
-import { EditEvent } from './Modules/EditEvent'
-import { AddCallTime } from './Modules/AddCallTime'
-import { EditCallTime } from './Modules/EditCallTime'
-import { ConfirmTimeChange } from './Modules/ConfirmTimeChange'
-import { Confirmations } from './Modules/Confirmations'
-import { TimeSheet } from './Modules/TimeSheet'
-import { AddLaborToCall } from './Modules/AddLaborToCall'
-import { CallTimeRequestList } from './Modules/CallTimeRequestList'
-import { FillRequestList } from './Modules/FillRequestList'
-import { EditLaborReqirement } from './Modules/EditLaborReqirement'
-import { Skills } from './Modules/Skills'
 import Login from './Modules/Login'
-import { Locations } from './Modules/Locations'
-import { Owner } from './Modules/Owner'
-import { StewardDashboard } from './Modules/StewardDashboard'
-import { ConfirmRequests } from './Modules/ConfirmRequests'
-import { UserRegistration } from './Modules/UserRegistration'
-import { VerifyRegistration } from './Modules/VerifyRegistration'
-import { StewardRegisterRedirect } from './Modules/StewardRegisterRedirect'
-import { UserProfile } from './Modules/UserProfile'
 import { ForgotPassword } from './Modules/ForgotPassword'
 import { ResetPassword } from './Modules/ResetPassword'
 import { About } from './Modules/About'
 import { Demo } from './Modules/Demo'
 import { NotFound } from './Modules/NotFound'
-import { SignInStation } from './Modules/SignInStation'
+
+// Lazy-loaded dash routes
+const ListEvents = lazy(() => import('./Modules/ListEvents').then(m => ({ default: m.ListEvents })))
+const EventDetails = lazy(() => import('./Modules/EventDetails').then(m => ({ default: m.EventDetails })))
+const Contacts = lazy(() => import('./Modules/Contacts').then(m => ({ default: m.Contacts })))
+const WorkerHistory = lazy(() => import('./Modules/WorkerHistory').then(m => ({ default: m.WorkerHistory })))
+const CreateEvent = lazy(() => import('./Modules/CreateEvent').then(m => ({ default: m.CreateEvent })))
+const QRScanner = lazy(() => import('./Modules/QRScanner').then(m => ({ default: m.QRScanner })))
+const EditEvent = lazy(() => import('./Modules/EditEvent').then(m => ({ default: m.EditEvent })))
+const AddCallTime = lazy(() => import('./Modules/AddCallTime').then(m => ({ default: m.AddCallTime })))
+const EditCallTime = lazy(() => import('./Modules/EditCallTime').then(m => ({ default: m.EditCallTime })))
+const Confirmations = lazy(() => import('./Modules/Confirmations').then(m => ({ default: m.Confirmations })))
+const TimeSheet = lazy(() => import('./Modules/TimeSheet').then(m => ({ default: m.TimeSheet })))
+const AddLaborToCall = lazy(() => import('./Modules/AddLaborToCall').then(m => ({ default: m.AddLaborToCall })))
+const CallTimeRequestList = lazy(() => import('./Modules/CallTimeRequestList').then(m => ({ default: m.CallTimeRequestList })))
+const FillRequestList = lazy(() => import('./Modules/FillRequestList').then(m => ({ default: m.FillRequestList })))
+const EditLaborReqirement = lazy(() => import('./Modules/EditLaborReqirement').then(m => ({ default: m.EditLaborReqirement })))
+const Skills = lazy(() => import('./Modules/Skills').then(m => ({ default: m.Skills })))
+const Locations = lazy(() => import('./Modules/Locations').then(m => ({ default: m.Locations })))
+const Owner = lazy(() => import('./Modules/Owner').then(m => ({ default: m.Owner })))
+const StewardDashboard = lazy(() => import('./Modules/StewardDashboard').then(m => ({ default: m.StewardDashboard })))
+const UserProfile = lazy(() => import('./Modules/UserProfile').then(m => ({ default: m.UserProfile })))
+
+// Lazy-loaded token-based public routes
+const ConfirmRequests = lazy(() => import('./Modules/ConfirmRequests').then(m => ({ default: m.ConfirmRequests })))
+const StewardRegisterRedirect = lazy(() => import('./Modules/StewardRegisterRedirect').then(m => ({ default: m.StewardRegisterRedirect })))
+const UserRegistration = lazy(() => import('./Modules/UserRegistration').then(m => ({ default: m.UserRegistration })))
+const VerifyRegistration = lazy(() => import('./Modules/VerifyRegistration').then(m => ({ default: m.VerifyRegistration })))
+const ConfirmTimeChange = lazy(() => import('./Modules/ConfirmTimeChange').then(m => ({ default: m.ConfirmTimeChange })))
+const ClockInOut = lazy(() => import('./Modules/ClockInOut').then(m => ({ default: m.ClockInOut })))
+const SignInStation = lazy(() => import('./Modules/SignInStation').then(m => ({ default: m.SignInStation })))
 
 
 const routes = [
@@ -85,7 +90,7 @@ function AppInner() {
   const location = useLocation()
   const element = useRoutes(routes)
 
-  return element
+  return <Suspense fallback={null}>{element}</Suspense>
 }
 
 export default function App() {
