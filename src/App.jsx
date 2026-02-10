@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { useRoutes, useLocation, Navigate } from 'react-router-dom'
+import { useRoutes } from 'react-router-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
 import Layout from './components/Layout'
 import LandingPage from './components/LandingPage'
@@ -90,14 +90,15 @@ const routes = [
 ]
 
 function AppInner() {
-  const location = useLocation()
   const element = useRoutes(routes)
 
   return (
-    <Suspense fallback={null}>
-      {element}
-    </Suspense>
-    <CookieConsent />
+    <>
+      <Suspense fallback={null}>
+        {element}
+      </Suspense>
+      <CookieConsent />
+    </>
   )
 }
 

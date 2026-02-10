@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './CookieConsent.css'
 
 const CookieConsent = () => {
-  const [showBanner, setShowBanner] = useState(false)
-
-  useEffect(() => {
+  const [showBanner, setShowBanner] = useState(() => {
     const consent = localStorage.getItem('cookieConsent')
-    if (!consent) {
-      setShowBanner(true)
-    }
-  }, [])
+    return !consent
+  })
 
   const acceptCookies = () => {
     localStorage.setItem('cookieConsent', 'accepted')
