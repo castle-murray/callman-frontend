@@ -11,6 +11,7 @@ import { About } from './Modules/About'
 import { Demo } from './Modules/Demo'
 import { NotFound } from './Modules/NotFound'
 import { Contact } from './Modules/Contact'
+import CookieConsent from './components/CookieConsent'
 
 // Lazy-loaded dash routes
 const ListEvents = lazy(() => import('./Modules/ListEvents').then(m => ({ default: m.ListEvents })))
@@ -92,7 +93,12 @@ function AppInner() {
   const location = useLocation()
   const element = useRoutes(routes)
 
-  return <Suspense fallback={null}>{element}</Suspense>
+  return (
+    <Suspense fallback={null}>
+      {element}
+    </Suspense>
+    <CookieConsent />
+  )
 }
 
 export default function App() {
