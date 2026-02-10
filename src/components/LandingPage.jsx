@@ -26,7 +26,7 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-white text-primary font-bold py-3 px-10 rounded-lg text-lg hover:bg-blue-50 transition-colors shadow-lg"
+            className="bg-white text-blue-700 font-bold py-3 px-10 rounded-lg text-lg hover:bg-blue-50 transition-colors shadow-lg"
           >
             Get Started
           </button>
@@ -139,17 +139,14 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-text-heading dark:text-dark-text-primary mb-4">
             Ready to Streamline Your Staffing?
           </h2>
-          <p className="text-text-secondary dark:text-dark-text-secondary mb-3">
-            Contact our sales team to schedule a demo.
-          </p>
-          <p className="text-primary dark:text-dark-text-blue font-medium mb-8">
-            sales@callman.work
+          <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
+            Contact our sales team to schedule a demo or learn more about how CallManager can help your company.
           </p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/contact')}
             className="bg-primary hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover text-white font-bold py-3 px-10 rounded-lg text-lg transition-colors shadow-lg"
           >
-            Login
+            Contact Us
           </button>
         </div>
       </section>

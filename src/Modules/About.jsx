@@ -135,17 +135,14 @@ export function About() {
           <h2 className="text-3xl font-bold text-text-heading dark:text-dark-text-primary mb-4">
             Get in Touch
           </h2>
-          <p className="text-text-secondary dark:text-dark-text-secondary mb-3">
+          <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
             Interested in CallManager for your company? Reach out to our sales team.
           </p>
-          <p className="text-primary dark:text-dark-text-blue font-medium mb-8">
-            sales@callman.work
-          </p>
           <Link
-            to="/login"
+            to="/contact"
             className="inline-block bg-primary hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover text-white font-bold py-3 px-10 rounded-lg text-lg transition-colors shadow-lg"
           >
-            Login
+            Contact Us
           </Link>
         </div>
       </section>

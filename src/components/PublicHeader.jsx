@@ -46,6 +46,7 @@ export function PublicHeader({ className = '' }) {
             <Link to="/" className={linkClass}>Home</Link>
             <Link to="/about" className={linkClass}>About</Link>
             <Link to="/demo" className={linkClass}>Demo</Link>
+            <Link to="/contact" className={linkClass}>Contact</Link>
             {isAuthenticated ? (
               <Link to="/dash" className={linkClass}>Dashboard</Link>
             ) : (
@@ -64,6 +65,7 @@ export function PublicHeader({ className = '' }) {
           <Link to="/" className={linkClass} onClick={() => setIsMenuOpen(false)}>Home</Link>
           <Link to="/about" className={linkClass} onClick={() => setIsMenuOpen(false)}>About</Link>
           <Link to="/demo" className={linkClass} onClick={() => setIsMenuOpen(false)}>Demo</Link>
+          <Link to="/contact" className={linkClass} onClick={() => setIsMenuOpen(false)}>Contact</Link>
           {isAuthenticated ? (
             <Link to="/dash" className={linkClass} onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
           ) : (

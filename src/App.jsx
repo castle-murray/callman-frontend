@@ -10,6 +10,7 @@ import { ResetPassword } from './Modules/ResetPassword'
 import { About } from './Modules/About'
 import { Demo } from './Modules/Demo'
 import { NotFound } from './Modules/NotFound'
+import { Contact } from './Modules/Contact'
 
 // Lazy-loaded dash routes
 const ListEvents = lazy(() => import('./Modules/ListEvents').then(m => ({ default: m.ListEvents })))
@@ -47,6 +48,7 @@ const routes = [
   { path: "/", element: <LandingPage /> },
   { path: "/about", element: <About /> },
   { path: "/demo", element: <Demo /> },
+  { path: "/contact", element: <Contact /> },
   { path: "/login", element: <Login /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password/:token", element: <ResetPassword /> },
