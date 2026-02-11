@@ -34,7 +34,7 @@ export function CreateEvent() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries(['events'])
-            navigate(`/event/${data.slug}`)
+            navigate(`/dash/event/${data.slug}`)
         }
     })
 

@@ -51,6 +51,8 @@ export function Contacts() {
     const [selectedAltIndex, setSelectedAltIndex] = useState(0)
     const [laborMenu, setLaborMenu] = useState(null) // id of worker with menu open
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const [showImportModal, setShowImportModal] = useState(false)
+    const [importFile, setImportFile] = useState(null)
     const { addMessage } = useMessages()
 
     useEffect(() => {
@@ -170,6 +172,63 @@ export function Contacts() {
         }
     })
 
+    const importMutation = useMutation({
+        mutationFn: (file) => {
+            const formData = new FormData()
+            formData.append('file', file)
+            return api.post('/workers/import/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            })
+        },
+        onSuccess: (response) => {
+            const { imported, skipped, errors } = response.data
+            addMessage(`Imported ${imported} contact${imported !== 1 ? 's' : ''}${skipped ? `, ${skipped} already existed` : ''}`, 'success')
+            if (errors?.length) {
+                addMessage(`${errors.length} error${errors.length !== 1 ? 's' : ''}: ${errors.join(', ')}`, 'warning')
+            }
+            queryClient.invalidateQueries(['contacts'])
+            setShowImportModal(false)
+            setImportFile(null)
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to import contacts', 'error')
+        }
+    })
+
+    const pickerMutation = useMutation({
+        mutationFn: (contacts) => api.post('/workers/import-contacts/', { contacts }),
+        onSuccess: (response) => {
+            const { imported, skipped, errors } = response.data
+            addMessage(`Imported ${imported} contact${imported !== 1 ? 's' : ''}${skipped ? `, ${skipped} already existed` : ''}`, 'success')
+            if (errors?.length) {
+                addMessage(`${errors.length} error${errors.length !== 1 ? 's' : ''}: ${errors.join(', ')}`, 'warning')
+            }
+            queryClient.invalidateQueries(['contacts'])
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to import contacts', 'error')
+        }
+    })
+
+    const handlePickContacts = async () => {
+        try {
+            const selected = await navigator.contacts.select(['name', 'tel'], { multiple: true })
+            const mapped = selected
+                .filter(c => c.tel?.length)
+                .map(c => ({
+                    name: c.name?.[0] || 'Unnamed',
+                    phone_numbers: c.tel.map(t => ({ phone_number: t }))
+                }))
+            if (mapped.length) {
+                pickerMutation.mutate(mapped)
+            }
+        } catch (err) {
+            if (err.name !== 'TypeError') {
+                addMessage('Contact selection cancelled', 'info')
+            }
+        }
+    }
+
     const handleAddSubmit = (e) => {
         e.preventDefault()
         addMutation.mutate(newWorker)
@@ -255,7 +314,19 @@ export function Contacts() {
                 </div>
 
                 <div className="relative mb-4 overflow-hidden">
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+                        {'contacts' in navigator && (
+                            <button
+                                onClick={handlePickContacts}
+                                disabled={pickerMutation.isPending}
+                                className={`px-4 py-2 bg-secondary dark:bg-dark-secondary text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                            >
+                                {pickerMutation.isPending ? 'Importing...' : 'Select from Phone'}
+                            </button>
+                        )}
+                        <button onClick={() => setShowImportModal(true)} className={`px-4 py-2 bg-secondary dark:bg-dark-secondary text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                            Import Contacts
+                        </button>
                         <button onClick={() => setFormState('entering')} className={`px-4 py-2 bg-primary text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             Add Worker
                         </button>
@@ -458,6 +529,37 @@ export function Contacts() {
                     </button>
                 </div>
             </div>
+            {showImportModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setShowImportModal(false); setImportFile(null) }}>
+                    <div className="bg-card-bg dark:bg-dark-card-bg rounded-lg shadow-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="text-xl font-bold mb-4 text-text-heading dark:text-dark-text-primary">Import Contacts</h2>
+                        <p className="text-sm text-text-secondary dark:text-dark-text-secondary mb-4">
+                            Export contacts from your phone as a .vcf file, then upload it here to bulk-import workers.
+                        </p>
+                        <input
+                            type="file"
+                            accept=".vcf"
+                            onChange={(e) => setImportFile(e.target.files[0] || null)}
+                            className="block w-full text-sm text-text-tertiary dark:text-dark-text-tertiary file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/80 mb-4"
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => { setShowImportModal(false); setImportFile(null) }}
+                                className="px-4 py-2 bg-gray-500 text-white rounded"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => importMutation.mutate(importFile)}
+                                disabled={!importFile || importMutation.isPending}
+                                className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+                            >
+                                {importMutation.isPending ? 'Importing...' : 'Upload'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {tooltip.show && (
                 <div
                     style={{

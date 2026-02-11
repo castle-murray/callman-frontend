@@ -57,7 +57,7 @@ export function FillRequestList() {
             <div>
                 <p>Missing required data. Please navigate from the event page.</p>
                 <button 
-                    onClick={() => navigate('/events')}
+                    onClick={() => navigate('/dash/events')}
                     className="bg-primary text-white px-4 py-2 rounded"
                 >
                     Back to Events
