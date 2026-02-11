@@ -39,7 +39,7 @@ const NotificationsModal = ({ notifications, unreadCount, onClose, markAsRead, d
                           </p>
                         </div>
                         <div className="flex flex-col flex-grow">
-                          <Link to={`/dash/request/${notification.labor_requirement_slug}/fill-list`} className="block" onClick={() => markAsRead(notification.id)}>
+                          <Link to={`/dash/request/${notification.labor_requirement_slug}/fill-list`} className="block" onClick={() => { markAsRead(notification.id); onClose(); }}>
                             <span className="text-text-primary dark:text-dark-text-primary">{notification.message}</span>
                           </Link>
                         </div>

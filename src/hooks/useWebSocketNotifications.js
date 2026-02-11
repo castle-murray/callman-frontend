@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMessages } from '../contexts/MessageContext';
 import api from '../api';
 
@@ -8,37 +9,10 @@ const useWebSocketNotifications = () => {
   const wsRef = useRef(null);
   const previousNotifications = useRef([]);
   const hasFetched = useRef(false);
+  const queryClient = useQueryClient();
   const { addMessage } = useMessages();
 
-  useEffect(() => {
-    // Connect to WebSocket
-    const token = localStorage.getItem('authToken');
-
-    const apiUrl = new URL(import.meta.env.VITE_API_BASE_URL);
-    const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${apiUrl.host}/ws/notifications/?token=${token}`;
-    wsRef.current = new WebSocket(wsUrl);
-
-
-    wsRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'htmx_trigger' && data.event === 'notification-update') {
-        // Fetch updated notifications
-        fetchNotifications();
-      }
-    };
-
-    // Fetch initial notifications
-    fetchNotifications();
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const { data } = await api.get('/notifications/');
       if (hasFetched.current) {
@@ -53,7 +27,32 @@ const useWebSocketNotifications = () => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
-  };
+  }, [addMessage]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+
+    const apiUrl = new URL(import.meta.env.VITE_API_BASE_URL);
+    const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${apiUrl.host}/ws/notifications/?token=${token}`;
+    wsRef.current = new WebSocket(wsUrl);
+
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'htmx_trigger' && data.event === 'notification-update') {
+        fetchNotifications();
+        queryClient.invalidateQueries();
+      }
+    };
+
+    fetchNotifications();
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [fetchNotifications, queryClient]);
 
   const markAsRead = async (id) => {
     try {
