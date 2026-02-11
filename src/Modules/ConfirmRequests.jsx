@@ -34,6 +34,22 @@ export function ConfirmRequests() {
         }
     })
 
+    const cancelMutation = useMutation({
+        mutationFn: async (tokenShort) => {
+            const response = await api.post(`/user/request/${tokenShort}/action/`, {
+                action: 'cancel'
+            })
+            return response.data
+        },
+        onSuccess: () => {
+            setMessage('Request canceled')
+            queryClient.invalidateQueries(['confirmRequests', slug, event_token])
+        },
+        onError: (error) => {
+            setMessage('Error canceling request: ' + error.message)
+        }
+    })
+
     const handleResponse = (requestId, response) => {
         confirmMutation.mutate({ requestId, response })
     }
@@ -68,8 +84,15 @@ export function ConfirmRequests() {
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold mb-4">Confirmed Call Times</h2>
                     {confirmed_call_times.map(req => (
-                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2">
-                            {req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}
+                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2 flex justify-between items-center">
+                            <p>{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
+                            <button
+                                onClick={() => { if (confirm('Are you sure you want to cancel this confirmed request?')) cancelMutation.mutate(req.token_short) }}
+                                disabled={cancelMutation.isPending}
+                                className="bg-danger text-white px-3 py-1 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
                         </div>
                     ))}
                     {qr_code_data && (
