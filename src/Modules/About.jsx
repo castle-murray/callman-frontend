@@ -129,6 +129,37 @@ export function About() {
         </div>
       </section>
 
+      {/* Coming Soon - Mobile App */}
+      <section className="py-20 px-6 bg-gradient-to-br from-primary/10 to-indigo/10 dark:from-dark-primary/20 dark:to-dark-indigo/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-block bg-primary/20 dark:bg-dark-primary/30 text-primary dark:text-dark-text-blue px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
+            Coming Soon
+          </div>
+          <h2 className="text-3xl font-bold text-text-heading dark:text-dark-text-primary mb-6">
+            CallManager Mobile App
+          </h2>
+          <p className="text-lg text-text-secondary dark:text-dark-text-secondary mb-6 max-w-3xl mx-auto">
+            We're building native mobile apps for Android and iOS to bring CallManager's full power
+            to your pocket. Manage events, send SMS requests, track time, and respond to confirmations —
+            all from your phone.
+          </p>
+          <div className="flex justify-center gap-6 flex-wrap">
+            <div className="flex items-center gap-3 text-text-secondary dark:text-dark-text-secondary">
+              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.523 15.341c-.45-.656-.997-1.316-1.597-1.835a6.69 6.69 0 0 0-1.364-.879c.426-.489.792-1.073 1.068-1.72.276-.648.42-1.343.42-2.034 0-.943-.22-1.87-.637-2.692-.417-.822-1.016-1.527-1.738-2.047-.722-.52-1.56-.844-2.425-.938-.865-.094-1.74.014-2.536.313-.796.299-1.488.787-2.004 1.414-.516.627-.847 1.382-.961 2.187-.114.805-.008 1.633.307 2.398.315.765.83 1.438 1.493 1.948.663.51 1.451.839 2.283.953-.334.392-.622.825-.857 1.289-.235.465-.413.959-.529 1.468-.116.509-.168 1.031-.154 1.551.014.52.098 1.034.249 1.525.151.491.372.957.656 1.381.284.424.628.801 1.021 1.116.393.315.83.562 1.296.732.466.17.957.261 1.455.27.498.009.994-.056 1.47-.193.476-.137.93-.345 1.345-.617.415-.272.787-.605 1.102-.987.315-.382.568-.808.751-1.264.183-.456.293-.936.326-1.423.033-.487-.009-.975-.124-1.446-.115-.471-.304-.923-.562-1.34z"/>
+              </svg>
+              <span className="font-medium">iOS App</span>
+            </div>
+            <div className="flex items-center gap-3 text-text-secondary dark:text-dark-text-secondary">
+              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C4.8 11.16 3.5 13.84 3.5 16.5V19h17v-2.5c0-2.66-1.3-5.34-2.9-7.02zM7 17.25c-.41 0-.75-.34-.75-.75s.34-.75.75-.75.75.34.75.75-.34.75-.75.75zm10 0c-.41 0-.75-.34-.75-.75s.34-.75.75-.75.75.34.75.75-.34.75-.75.75z"/>
+              </svg>
+              <span className="font-medium">Android App</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Contact */}
       <section className="py-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
