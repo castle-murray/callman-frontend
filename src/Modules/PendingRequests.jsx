@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import { useMessages } from '../contexts/MessageContext'
 
 export function PendingRequests() {
     const { addMessage } = useMessages()
+    const navigate = useNavigate()
     const errorShown = useRef(false)
     const { data, error, isLoading } = useQuery({
         queryKey: ['pendingRequests'],
@@ -25,7 +27,10 @@ export function PendingRequests() {
     if (error) return <div>Failed to load.</div>
 
     return (
-        <div className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow">
+        <div
+            onClick={() => navigate('/dash/pending-requests')}
+            className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow cursor-pointer hover:shadow-md transition-shadow"
+        >
             <h1>Pending Requests</h1>
             <p>{data.count}</p>
         </div>

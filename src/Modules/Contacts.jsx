@@ -1,9 +1,10 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api'
 import { useMessages } from '../contexts/MessageContext'
 import { Dropdown } from '../components/Dropdown'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 function filterContacts(contacts, searchQuery) {
     if (!searchQuery.trim()) return contacts
@@ -53,6 +54,7 @@ export function Contacts() {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [showImportModal, setShowImportModal] = useState(false)
     const [importFile, setImportFile] = useState(null)
+    const [deleteConfirm, setDeleteConfirm] = useState(null) // { type: 'worker'|'alt'|'primary', ...params }
     const { addMessage } = useMessages()
 
     useEffect(() => {
@@ -410,8 +412,8 @@ export function Contacts() {
                                                             <Dropdown
                                                                 items={[
                                                                     { text: 'Edit', onClick: () => { setEditingAlt(alt.id); setAltForm({label: alt.label, phone_number: alt.phone_number}); setAddingAlt(contact.id); setAltMenu(null) } },
-                                                                    { text: 'Delete', onClick: () => { if (confirm('Delete this alt phone?')) deleteAltMutation.mutate({id: contact.id, alt_id: alt.id}); setAltMenu(null) }, disabled: deleteAltMutation.isLoading },
-                                                                    { text: 'Make Primary', onClick: () => { if (confirm('Make this the primary phone?')) makePrimaryMutation.mutate({id: contact.id, alt_id: alt.id, make_primary: true}); setAltMenu(null) }, disabled: makePrimaryMutation.isLoading }
+                                                                    { text: 'Delete', onClick: () => { setDeleteConfirm({ type: 'alt', id: contact.id, alt_id: alt.id }); setAltMenu(null) }, disabled: deleteAltMutation.isLoading },
+                                                                    { text: 'Make Primary', onClick: () => { setDeleteConfirm({ type: 'primary', id: contact.id, alt_id: alt.id }); setAltMenu(null) }, disabled: makePrimaryMutation.isLoading }
                                                                 ]}
                                                                 isOpen={altMenu === alt.id}
                                                                 onClose={() => setAltMenu(null)}
@@ -440,7 +442,7 @@ export function Contacts() {
                                             { text: 'Edit', onClick: () => { setEditingId(contact.id); setEditForm({name: contact.name, phone_number: contact.phone_number}); setLaborMenu(null) } },
                                             { text: 'Skills', onClick: () => { setEditingLaborTypes(contact.id); setLaborForm(contact.labor_types?.map(lt => lt.id) || []); setLaborMenu(null) } },
                                             { text: 'History', onClick: () => { navigate(`/dash/workers/${contact.slug}/history`); setLaborMenu(null) } },
-                                            { text: 'Delete', onClick: () => { if (confirm('Delete this worker?')) deleteMutation.mutate(contact.id); setLaborMenu(null) }, className: 'text-danger dark:text-dark-danger', disabled: deleteMutation.isLoading }
+                                            { text: 'Delete', onClick: () => { setDeleteConfirm({ type: 'worker', id: contact.id }); setLaborMenu(null) }, className: 'text-danger dark:text-dark-danger', disabled: deleteMutation.isLoading }
                                         ]}
                                         isOpen={laborMenu === contact.id}
                                         onClose={() => setLaborMenu(null)}
@@ -578,6 +580,30 @@ export function Contacts() {
                     {tooltip.text}
                 </div>
             )}
+        <ConfirmDialog
+            isOpen={deleteConfirm?.type === 'worker'}
+            onClose={() => setDeleteConfirm(null)}
+            onConfirm={() => { deleteMutation.mutate(deleteConfirm.id); setDeleteConfirm(null) }}
+            title="Delete Worker"
+            message="Are you sure you want to delete this worker?"
+            isPending={deleteMutation.isPending}
+        />
+        <ConfirmDialog
+            isOpen={deleteConfirm?.type === 'alt'}
+            onClose={() => setDeleteConfirm(null)}
+            onConfirm={() => { deleteAltMutation.mutate({ id: deleteConfirm.id, alt_id: deleteConfirm.alt_id }); setDeleteConfirm(null) }}
+            title="Delete Alt Phone"
+            message="Are you sure you want to delete this alternative phone number?"
+            isPending={deleteAltMutation.isPending}
+        />
+        <ConfirmDialog
+            isOpen={deleteConfirm?.type === 'primary'}
+            onClose={() => setDeleteConfirm(null)}
+            onConfirm={() => { makePrimaryMutation.mutate({ id: deleteConfirm.id, alt_id: deleteConfirm.alt_id, make_primary: true }); setDeleteConfirm(null) }}
+            title="Make Primary Phone"
+            message="Make this the primary phone number? The current primary will become an alt."
+            isPending={makePrimaryMutation.isPending}
+        />
         </div>
     )
 }

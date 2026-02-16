@@ -82,8 +82,9 @@ export default function Header({ children, title = "CallManager" }) {
             <a href={user?.user?.isSteward && !user?.user?.isManager ? '/dash/steward' : '/dash'} className="text-xl font-bold text-text-primary dark:text-dark-text-primary">
               CallManager
             </a>
-            
-            <div className="flex items-center space-x-4">
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               {!isAuthenticated && (
                 <a href="/login" className="text-primary hover:underline dark:text-dark-text-blue dark:hover:text-dark-primary-hover">
                   Login
@@ -132,12 +133,12 @@ export default function Header({ children, title = "CallManager" }) {
                     </svg>
                 </a>
               )}
-            
+
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-    
+
                   <svg id="sun-icon" className="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
                   </svg>
@@ -145,19 +146,98 @@ export default function Header({ children, title = "CallManager" }) {
                     <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
               </button>
-              
+            </div>
+
+            {/* Mobile Controls */}
+            <div className="flex md:hidden items-center space-x-2">
+              {isAuthenticated && (
+                <button
+                  onClick={() => setIsNotificationsOpen(true)}
+                  className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <svg className="w-6 h-6 text-text-tertiary dark:text-dark-text-tertiary hover:text-primary dark:hover:text-dark-text-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
+
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <svg id="sun-icon-mobile" className={isDarkMode ? 'w-6 h-6 hidden' : 'w-6 h-6 block'} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <svg id="moon-icon-mobile" className={isDarkMode ? 'w-5 h-5 block' : 'w-5 h-5 hidden'} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              </button>
+
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2"
+                className="p-2"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                 </svg>
               </button>
             </div>
           </div>
+
         </nav>
       </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setIsMobileMenuOpen(false)}>
+          <div
+            className="absolute top-16 right-0 w-64 bg-card-bg dark:bg-dark-header-bg shadow-lg dark:shadow-dark-shadow rounded-l-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col py-4">
+              {!isAuthenticated && (
+                <a href="/login" className="text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3">
+                  Login
+                </a>
+              )}
+              {isAuthenticated && user?.user?.isManager && (
+                <a href="/dash" className="text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3">
+                  Dashboard
+                </a>
+              )}
+              {isAuthenticated && user?.user?.has_userprofile && (
+                <a href="/dash/profile" className="text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3">
+                  Profile
+                </a>
+              )}
+              {isAuthenticated && user?.user?.isSteward && (
+                <a href="/dash/steward" className="text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3">
+                  Steward
+                </a>
+              )}
+              {isAuthenticated && user?.user?.isOwner && (
+                <a href="/dash/company/settings" className="flex items-center space-x-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3">
+                  <svg className="w-5 h-5 text-text-tertiary dark:text-dark-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  <span>Settings</span>
+                </a>
+              )}
+              {isAuthenticated && (
+                <button onClick={logout} className="text-primary hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-dark-text-blue dark:hover:text-dark-primary-hover px-4 py-3 text-left">
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isNotificationsOpen && (
         <NotificationsModal

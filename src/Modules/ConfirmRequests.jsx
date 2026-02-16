@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import api from '../api'
 import Header from '../components/Header'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 export function ConfirmRequests() {
     const navigate = useNavigate()
     const { slug, event_token } = useParams()
     const queryClient = useQueryClient()
     const [message, setMessage] = useState('')
+    const [cancelToken, setCancelToken] = useState(null)
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['confirmRequests', slug, event_token],
@@ -87,7 +89,7 @@ export function ConfirmRequests() {
                         <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2 flex justify-between items-center">
                             <p>{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
                             <button
-                                onClick={() => { if (confirm('Are you sure you want to cancel this confirmed request?')) cancelMutation.mutate(req.token_short) }}
+                                onClick={() => setCancelToken(req.token_short)}
                                 disabled={cancelMutation.isPending}
                                 className="bg-danger text-white px-3 py-1 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover disabled:opacity-50"
                             >
@@ -172,10 +174,26 @@ export function ConfirmRequests() {
             <main className="lg:container lg:mx-auto py-6 ml-2 lg:px-6 lg:flex-grow z-10">
                 {content}
             </main>
+            <ConfirmDialog
+                isOpen={!!cancelToken}
+                onClose={() => setCancelToken(null)}
+                onConfirm={() => { cancelMutation.mutate(cancelToken); setCancelToken(null) }}
+                title="Cancel Request"
+                message="Are you sure you want to cancel this confirmed request?"
+                isPending={cancelMutation.isPending}
+            />
         </div>
     ) : (
         <div className="min-h-screen bg-body-bg dark:bg-dark-body-bg text-text-primary dark:text-dark-text-primary">
             {content}
+            <ConfirmDialog
+                isOpen={!!cancelToken}
+                onClose={() => setCancelToken(null)}
+                onConfirm={() => { cancelMutation.mutate(cancelToken); setCancelToken(null) }}
+                title="Cancel Request"
+                message="Are you sure you want to cancel this confirmed request?"
+                isPending={cancelMutation.isPending}
+            />
         </div>
     )
 }

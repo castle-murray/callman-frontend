@@ -29,7 +29,7 @@ export function EditLaborReqirement() {
     useEffect(() => {
         if (labor_requirement && labor_types) {
             setFormData({
-                labor_type: labor_requirement.labor_type,
+                labor_type: labor_requirement.labor_type?.id ?? labor_requirement.labor_type,
                 needed_labor: labor_requirement.needed_labor,
                 minimum_hours: labor_requirement.minimum_hours || ''
             })

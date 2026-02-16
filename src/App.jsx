@@ -34,6 +34,9 @@ const Locations = lazy(() => import('./Modules/Locations').then(m => ({ default:
 const Owner = lazy(() => import('./Modules/Owner').then(m => ({ default: m.Owner })))
 const StewardDashboard = lazy(() => import('./Modules/StewardDashboard').then(m => ({ default: m.StewardDashboard })))
 const UserProfile = lazy(() => import('./Modules/UserProfile').then(m => ({ default: m.UserProfile })))
+const PendingRequestsList = lazy(() => import('./Modules/PendingRequestsList').then(m => ({ default: m.PendingRequestsList })))
+const DeclinedRequestsList = lazy(() => import('./Modules/DeclinedRequestsList').then(m => ({ default: m.DeclinedRequestsList })))
+const SmsUsageReport = lazy(() => import('./Modules/SmsUsageReport').then(m => ({ default: m.SmsUsageReport })))
 
 // Lazy-loaded token-based public routes
 const ConfirmRequests = lazy(() => import('./Modules/ConfirmRequests').then(m => ({ default: m.ConfirmRequests })))
@@ -84,6 +87,9 @@ const routes = [
       { path: "company/settings", element: <Owner /> },
       { path: "steward", element: <StewardDashboard /> },
       { path: "profile", element: <UserProfile /> },
+      { path: "pending-requests", element: <PendingRequestsList /> },
+      { path: "declined-requests", element: <DeclinedRequestsList /> },
+      { path: "sms-usage", element: <SmsUsageReport /> },
     ]
   },
   { path: "*", element: <NotFound /> }

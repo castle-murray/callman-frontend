@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 export function Skills() {
-    const navigate = useNavigate()
     const queryClient = useQueryClient()
+    const [deleteSkillId, setDeleteSkillId] = useState(null)
     const [formData, setFormData] = useState({
         name: '',
         action: 'add'
@@ -31,6 +31,7 @@ export function Skills() {
             setFormData({ name: '', action: 'add' })
             setEditingSkill(null)
             setEditFormData({ name: '' })
+            setDeleteSkillId(null)
         }
     })
 
@@ -62,15 +63,6 @@ export function Skills() {
             action: 'edit',
             skill_id: skillId
         })
-    }
-
-    const handleDelete = (skillId) => {
-        if (confirm('Are you sure you want to delete this skill?')) {
-            skillMutation.mutate({
-                action: 'delete',
-                skill_id: skillId
-            })
-        }
     }
 
     const startEdit = (skill) => {
@@ -165,7 +157,7 @@ export function Skills() {
                                                     Edit
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(skill.id)}
+                                                    onClick={() => setDeleteSkillId(skill.id)}
                                                     disabled={skillMutation.isPending}
                                                     className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50"
                                                 >
@@ -182,6 +174,14 @@ export function Skills() {
                     )}
                 </div>
             </div>
+            <ConfirmDialog
+                isOpen={!!deleteSkillId}
+                onClose={() => setDeleteSkillId(null)}
+                onConfirm={() => skillMutation.mutate({ action: 'delete', skill_id: deleteSkillId })}
+                title="Delete Skill"
+                message="Are you sure you want to delete this skill?"
+                isPending={skillMutation.isPending}
+            />
         </div>
     )
 }

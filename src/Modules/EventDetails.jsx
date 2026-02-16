@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
@@ -6,6 +6,7 @@ import { LaborRequirementStatus } from './LaborRequirementStatus'
 import { Dropdown } from '../components/Dropdown'
 import { SignInStationModal } from '../components/SignInStationModal'
 import { useMessages } from '../contexts/MessageContext'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 
 export function EventDetails() {
@@ -21,6 +22,8 @@ export function EventDetails() {
     const [refreshKey, setRefreshKey] = useState(0)
     const [stationModalOpen, setStationModalOpen] = useState(false)
     const [isLegendOpen, setIsLegendOpen] = useState(false)
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+    const [deleteCallTimeSlug, setDeleteCallTimeSlug] = useState(null)
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['eventDetails', slug, refreshKey],
@@ -61,6 +64,7 @@ export function EventDetails() {
                 return oldData
             })
             setCurrentDropdown(null)
+            setDeleteCallTimeSlug(null)
         },
         onSuccess: (data) => {
             addMessage(data.message, 'success')
@@ -73,6 +77,25 @@ export function EventDetails() {
     })
 
 
+
+    const cancelEventMutation = useMutation({
+        mutationFn: async () => {
+            const response = await api.post(`/event/${slug}/cancel/`)
+            return response.data
+        },
+        onSuccess: (data) => {
+            setCancelDialogOpen(false)
+            addMessage(data.message, 'success')
+            if (data.sms_errors?.length > 0) {
+                addMessage(`SMS errors: ${data.sms_errors.join(', ')}`, 'error')
+            }
+            queryClient.invalidateQueries({ queryKey: ['eventDetails', slug] })
+            queryClient.invalidateQueries({ queryKey: ['events'] })
+        },
+        onError: (error) => {
+            addMessage('Error canceling event: ' + (error.response?.data?.message || error.message), 'error')
+        }
+    })
 
     const sendCallTimeMessages = async (callTimeSlug) => {
         try {
@@ -139,12 +162,16 @@ export function EventDetails() {
         <div>
             <h1 className="text-3xl ml-5 font-bold mb-6 text-text-heading dark:text-dark-text-primary">
                 {data.event.event_name}
+                {data.event.canceled && (
+                    <span className="ml-3 text-lg font-medium text-danger dark:text-dark-danger">Canceled</span>
+                )}
             </h1>
 
             {(() => {
                 const actionsItems = [
                     { text: 'Edit Event', onClick: () => navigate(`/dash/event/${slug}/edit`) },
                     { text: 'Send Messages', onClick: () => sendMessagesMutation.mutate(), disabled: sendMessagesMutation.isPending },
+                    ...(!data.event.canceled ? [{ text: 'Cancel Event', onClick: () => setCancelDialogOpen(true), className: 'text-danger dark:text-dark-danger' }] : []),
                 ]
                 if (data.event.company?.time_tracking) {
                     actionsItems.push(
@@ -221,7 +248,7 @@ export function EventDetails() {
                                             { text: 'Copy Call Time', onClick: () => navigate(`/dash/events/${slug}/add-call-time?copy=${callTime.slug}`) },
                                             ...(callTime.time_has_changed ? [{ text: 'Confirmations', onClick: () => navigate(`/dash/events/${slug}/call-times/${callTime.slug}/confirmations`) }] : []),
                                             { text: 'Send Reminder', onClick: () => sendReminder(callTime.slug) },
-                                            { text: 'Delete', onClick: () => { if (confirm('Delete this call time?')) deleteCallTimeMutation.mutate(callTime.slug) }, className: 'text-danger dark:text-dark-danger' }
+                                            { text: 'Delete', onClick: () => setDeleteCallTimeSlug(callTime.slug), className: 'text-danger dark:text-dark-danger' }
                                         ]}
                                         isOpen={currentDropdown === callTime.slug}
                                         onClose={() => setCurrentDropdown(null)}
@@ -309,6 +336,23 @@ export function EventDetails() {
                 </div>
             </details>
             <SignInStationModal isOpen={stationModalOpen} onClose={() => setStationModalOpen(false)} slug={slug} />
+            <ConfirmDialog
+                isOpen={cancelDialogOpen}
+                onClose={() => setCancelDialogOpen(false)}
+                onConfirm={() => cancelEventMutation.mutate()}
+                title="Cancel Event"
+                message="This will cancel the event and notify all workers via SMS."
+                confirmWord="CANCEL"
+                isPending={cancelEventMutation.isPending}
+            />
+            <ConfirmDialog
+                isOpen={!!deleteCallTimeSlug}
+                onClose={() => setDeleteCallTimeSlug(null)}
+                onConfirm={() => deleteCallTimeMutation.mutate(deleteCallTimeSlug)}
+                title="Delete Call Time"
+                message="Are you sure you want to delete this call time?"
+                isPending={deleteCallTimeMutation.isPending}
+            />
         </div>
     )
 }

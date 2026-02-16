@@ -8,6 +8,7 @@ import { DeclinedCount } from './DeclinedCount'
 import { SMSCount } from './SmsCount'
 import { MainMenu } from './MainMenu'
 import { useMessages } from '../contexts/MessageContext'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 function StewardInvite() {
     const [search, setSearch] = useState('')
@@ -190,6 +191,8 @@ export function ListEvents() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [cancelSlug, setCancelSlug] = useState(null)
+  const [deleteSlug, setDeleteSlug] = useState(null)
   const eventsPerPage = 10
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -245,14 +248,33 @@ export function ListEvents() {
 
   const deleteEventMutation = useMutation({
       mutationFn: async (eventSlug) => {
-          const response = await api.delete(`/event/${eventSlug}`)
+          const response = await api.delete(`/event/${eventSlug}/`)
           return response.data
       },
       onSuccess: () => {
+          setDeleteSlug(null)
           queryClient.invalidateQueries(['events'])
       },
       onError: (error) => {
           addMessage('Error deleting event: ' + error.message, 'error')
+      }
+  })
+
+  const cancelEventMutation = useMutation({
+      mutationFn: async (eventSlug) => {
+          const response = await api.post(`/event/${eventSlug}/cancel/`)
+          return response.data
+      },
+      onSuccess: (data) => {
+          setCancelSlug(null)
+          queryClient.invalidateQueries(['events'])
+          addMessage(data.message, 'success')
+          if (data.sms_errors?.length > 0) {
+              addMessage(`SMS errors: ${data.sms_errors.join(', ')}`, 'error')
+          }
+      },
+      onError: (error) => {
+          addMessage('Error canceling event: ' + (error.response?.data?.message || error.message), 'error')
       }
   })
 
@@ -270,7 +292,7 @@ export function ListEvents() {
 
   return (
       <div>
-          <div className="flex flex-col lg:flex-row justify-between mb-4">
+          <div className="hidden md:flex flex-col lg:flex-row justify-between mb-4">
           <UpcomingEvents />
           <PendingRequests />
           <DeclinedCount />
@@ -303,6 +325,32 @@ export function ListEvents() {
           Include Past Events
         </label>
       </div>
+
+      {/* Subtle pagination at top */}
+      {totalPages > 1 && (
+        <div className="mb-4 flex justify-end items-center space-x-3 text-sm">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="text-text-tertiary dark:text-dark-text-tertiary hover:text-primary dark:hover:text-dark-primary disabled:opacity-30 disabled:hover:text-text-tertiary dark:disabled:hover:text-dark-text-tertiary"
+            aria-label="Previous page"
+          >
+            &lt;
+          </button>
+          <span className="text-text-tertiary dark:text-dark-text-tertiary">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="text-text-tertiary dark:text-dark-text-tertiary hover:text-primary dark:hover:text-dark-primary disabled:opacity-30 disabled:hover:text-text-tertiary dark:disabled:hover:text-dark-text-tertiary"
+            aria-label="Next page"
+          >
+            &gt;
+          </button>
+        </div>
+      )}
+
       <div className="space-y-4">
         {paginatedEvents?.map(event => (
           <div key={event.id}
@@ -329,7 +377,7 @@ export function ListEvents() {
                         Edit
                       </button>
                       <button
-                        onClick={() => { if (confirm('Are you sure you want to delete this event?')) deleteEventMutation.mutate(event.slug) }}
+                        onClick={() => setDeleteSlug(event.slug)}
                         className="bg-danger text-dark-text-primary px-3 py-1 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover"
                       >
                         Delete
@@ -361,48 +409,81 @@ export function ListEvents() {
                 <p className="text-text-secondary dark:text-dark-text-secondary">
                   {event.event_description || "No description provided"}
                 </p>
-                {event.canceled && (
-                  <span className="text-lg block font-medium text-danger dark:text-dark-danger">
-                    Canceled
-                  </span>
-                )}
-                {event.filled && (
-                  <span className="text-lg block font-medium text-secondary dark:text-dark-text-secondary">
-                    Filled
-                  </span>
-                )}
-                {!event.canceled && !event.filled && (
-                  <span className="text-lg block font-medium text-yellow dark:text-dark-yellow">
-                    {event.unfilled_count} Unfilled Positions.
-                  </span>
-                )}
+                <div className="flex justify-between items-end">
+                  <div>
+                    {event.canceled && (
+                      <span className="text-lg block font-medium text-danger dark:text-dark-danger">
+                        Canceled
+                      </span>
+                    )}
+                    {event.filled && (
+                      <span className="text-lg block font-medium text-secondary dark:text-dark-text-secondary">
+                        Filled
+                      </span>
+                    )}
+                    {!event.canceled && !event.filled && (
+                      <span className="text-lg block font-medium text-yellow dark:text-dark-yellow">
+                        {event.unfilled_count} Unfilled Positions.
+                      </span>
+                    )}
+                  </div>
+                  {!event.canceled && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCancelSlug(event.slug) }}
+                      className="bg-secondary text-dark-text-primary px-3 py-1 rounded hover:bg-secondary-hover dark:bg-dark-secondary dark:hover:bg-dark-secondary-hover"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
-      
-      <div className="mt-6 flex justify-center items-center space-x-4">
-        <button
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-text-primary dark:text-dark-text-primary">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+
+      {/* Full pagination at bottom */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center space-x-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50 dark:bg-dark-primary dark:text-dark-text-primary"
+          >
+            Previous
+          </button>
+          <span className="text-text-primary dark:text-dark-text-primary">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50 dark:bg-dark-primary dark:text-dark-text-primary"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
     </div>
+    <ConfirmDialog
+      isOpen={!!cancelSlug}
+      onClose={() => setCancelSlug(null)}
+      onConfirm={() => cancelEventMutation.mutate(cancelSlug)}
+      title="Cancel Event"
+      message="This will cancel the event and notify all workers via SMS."
+      confirmWord="CANCEL"
+      isPending={cancelEventMutation.isPending}
+    />
+    <ConfirmDialog
+      isOpen={!!deleteSlug}
+      onClose={() => setDeleteSlug(null)}
+      onConfirm={() => deleteEventMutation.mutate(deleteSlug)}
+      title="Delete Event"
+      message="Are you sure you want to delete this event?"
+      confirmWord="DELETE"
+      isPending={deleteEventMutation.isPending}
+    />
     </div>
   )
 }

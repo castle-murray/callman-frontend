@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
 export function SMSCount() {
+    const navigate = useNavigate()
     const { data, error, isLoading } = useQuery({
         queryKey: ['smsCount'],
         queryFn: async () => {
@@ -15,7 +16,10 @@ export function SMSCount() {
     if (error) return <div>Error: {error.message}</div>
 
     return (
-        <div className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow">
+        <div
+            onClick={() => navigate('/dash/sms-usage')}
+            className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow cursor-pointer hover:shadow-md transition-shadow"
+        >
             <h1>SMS Sent</h1>
             <p>{data.count}</p>
         </div>

@@ -1,31 +1,30 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { TooltipSpan } from '../components/TooltipSpan'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import api from '../api'
 import { useNavigate } from 'react-router-dom'
 
-export function LaborRequirementStatus({ 
-    laborSlug, 
-    eventSlug 
+export function LaborRequirementStatus({
+    laborSlug,
+    eventSlug
     }) {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
-    
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
     const deleteMutation = useMutation({
         mutationFn: async () => {
             const response = await api.delete(`/labor/${laborSlug}/delete/`)
             return response.data
         },
         onSuccess: () => {
+            setDeleteDialogOpen(false)
             queryClient.invalidateQueries(['eventDetails', eventSlug])
             navigate(`/dash/event/${eventSlug}`)
         }
     })
 
-    const handleDelete = () => {
-        if (window.confirm('Are you sure you want to delete this labor requirement?')) {
-            deleteMutation.mutate()
-        }
-    }
     const { data: labor, isLoading, error } = useQuery({
         queryKey: ['laborRequirement', laborSlug],
         queryFn: async () => {
@@ -90,13 +89,21 @@ export function LaborRequirementStatus({
                 >
                     Edit
                 </button>
-                <button 
-                    onClick={handleDelete}
+                <button
+                    onClick={() => setDeleteDialogOpen(true)}
                     disabled={deleteMutation.isPending}
                     className="bg-danger text-dark-text-primary px-2 shadow-sm shadow-secondary rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover">
                     {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                 </button>
             </div>
+            <ConfirmDialog
+                isOpen={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+                onConfirm={() => deleteMutation.mutate()}
+                title="Delete Labor Requirement"
+                message="Are you sure you want to delete this labor requirement?"
+                isPending={deleteMutation.isPending}
+            />
         </>
     )
 }

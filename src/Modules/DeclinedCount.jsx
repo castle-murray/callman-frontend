@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
 export function DeclinedCount() {
+    const navigate = useNavigate()
     const { data, error, isLoading } = useQuery({
         queryKey: ['declinedCount'],
         queryFn: async () => {
@@ -15,7 +16,10 @@ export function DeclinedCount() {
     if (error) return <div>Error: {error.message}</div>
 
     return (
-        <div className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow">
+        <div
+            onClick={() => navigate('/dash/declined-requests')}
+            className="bg-card-bg p-4 rounded-lg shadow dark:bg-dark-card-bg dark:shadow-dark-shadow cursor-pointer hover:shadow-md transition-shadow"
+        >
             <h1>Declined Requests</h1>
             <p>{data.count}</p>
         </div>

@@ -173,7 +173,7 @@ export function TimeSheet() {
     const filteredConfirmedRequests = laborTypeFilter === 'All' ? confirmedRequests : confirmedRequests.filter(request => request.labor_requirement.labor_type.id === parseInt(laborTypeFilter))
     const filteredNcnsRequests = laborTypeFilter === 'All' ? ncnsRequests : ncnsRequests.filter(request => request.labor_requirement.labor_type.id === parseInt(laborTypeFilter))
 
-    const renderTable = (requests, title) => (
+    const renderTable = (requests, title, isNcns = false) => (
         <div className="mb-8">
             {requests.length > 0 ? (
                 <>
@@ -247,6 +247,14 @@ export function TimeSheet() {
                                             >
                                                 {formatTime(request.time_entry.start_time)}
                                             </span>
+                                        ) : isNcns ? (
+                                            <button
+                                                onClick={() => handleAction(request.id, 'showed_up')}
+                                                className="bg-green-500 text-white px-2 py-1 rounded text-sm"
+                                                disabled={actionMutation.isLoading}
+                                            >
+                                                Showed Up
+                                            </button>
                                         ) : (
                                             <div className="flex space-x-2">
                                                 <button
@@ -526,7 +534,7 @@ export function TimeSheet() {
                 </div>
             </div>
             {renderTable(filteredConfirmedRequests, 'Confirmed Workers')}
-            {renderTable(filteredNcnsRequests, 'No Call No Show')}
+            {renderTable(filteredNcnsRequests, 'No Call No Show', true)}
         </div>
         </>
     )
