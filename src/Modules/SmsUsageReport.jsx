@@ -1,18 +1,21 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useUser } from '../contexts/UserContext'
 import {
     BarChart, Bar, LineChart, Line,
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import api from '../api'
 
 function useChartColors() {
-    const style = getComputedStyle(document.documentElement)
+    const isDark = document.documentElement.classList.contains('dark')
     return {
-        primary: style.getPropertyValue('--color-primary').trim() || '#3b82f6',
-        text: style.getPropertyValue('--color-text-heading').trim() || '#111827',
-        grid: style.getPropertyValue('--color-border-light').trim() || '#d1d5db',
+        primary: isDark ? '#60a5fa' : '#3b82f6',
+        text: isDark ? '#e5e7eb' : '#111827',
+        grid: isDark ? '#374151' : '#d1d5db',
+        cardBg: isDark ? '#1f2937' : '#ffffff',
+        border: isDark ? '#4b5563' : '#e5e7eb',
     }
 }
 
@@ -29,8 +32,10 @@ function formatDay(dateStr) {
 
 export function SmsUsageReport() {
     const navigate = useNavigate()
+    const { user } = useUser()
     const [selectedMonth, setSelectedMonth] = useState(null)
     const colors = useChartColors()
+    const isAdministrator = user?.user?.isAdministrator
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['smsUsage'],
@@ -59,41 +64,40 @@ export function SmsUsageReport() {
 
     return (
         <div className="p-4 md:p-6 max-w-5xl mx-auto">
-            <div className="flex items-center gap-4 mb-6">
-                <button
-                    onClick={() => navigate('/dash')}
-                    className="text-primary hover:text-primary-hover text-sm"
-                >
-                    &larr; Dashboard
-                </button>
-                <h1 className="text-2xl font-bold text-text-heading dark:text-dark-text-heading">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold text-text-heading dark:text-dark-text-primary">
                     SMS Usage Report
                 </h1>
+                {isAdministrator && (
+                    <p className="text-sm text-text-body dark:text-dark-text-body mt-2">
+                        Viewing system-wide SMS usage across all companies
+                    </p>
+                )}
             </div>
 
             {/* Summary cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow">
-                    <p className="text-sm text-text-body dark:text-dark-text-body">This Month</p>
-                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-heading">
+                    <p className="text-sm text-text-body dark:text-dark-text-tertiary">This Month</p>
+                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-primary">
                         {currentMonth}
                     </p>
                 </div>
                 <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow">
-                    <p className="text-sm text-text-body dark:text-dark-text-body">Last Month</p>
-                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-heading">
+                    <p className="text-sm text-text-body dark:text-dark-text-tertiary">Last Month</p>
+                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-primary">
                         {previousMonth}
                     </p>
                 </div>
                 <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow">
-                    <p className="text-sm text-text-body dark:text-dark-text-body">All Time</p>
-                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-heading">
+                    <p className="text-sm text-text-body dark:text-dark-text-tertiary">All Time</p>
+                    <p className="text-3xl font-bold text-text-heading dark:text-dark-text-primary">
                         {data.total}
                     </p>
                 </div>
             </div>
 
-            {/* Monthly bar chart */}
+            {/* Monthly trend chart */}
             <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow mb-8">
                 <h2 className="text-lg font-semibold text-text-heading dark:text-dark-text-heading mb-4">
                     Monthly SMS Volume
@@ -102,7 +106,7 @@ export function SmsUsageReport() {
                     <p className="text-text-body dark:text-dark-text-body text-sm">No data available.</p>
                 ) : (
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={data.monthly}>
+                        <LineChart data={data.monthly}>
                             <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                             <XAxis
                                 dataKey="month"
@@ -116,35 +120,64 @@ export function SmsUsageReport() {
                             <Tooltip
                                 labelFormatter={formatMonth}
                                 contentStyle={{
-                                    backgroundColor: 'var(--color-card-bg)',
-                                    border: '1px solid var(--color-border-light)',
+                                    backgroundColor: colors.cardBg,
+                                    border: `1px solid ${colors.border}`,
                                     borderRadius: '0.5rem',
+                                    color: colors.text,
                                 }}
                             />
-                            <Bar
+                            <Line
+                                type="monotone"
                                 dataKey="count"
-                                fill={colors.primary}
-                                radius={[4, 4, 0, 0]}
-                                cursor="pointer"
-                                onClick={(entry) => setSelectedMonth(entry.month)}
+                                stroke={colors.primary}
+                                strokeWidth={3}
+                                dot={{ fill: colors.primary, r: 4, cursor: 'pointer' }}
+                                activeDot={{ r: 6, onClick: (e, payload) => setSelectedMonth(payload.payload.month) }}
                             />
-                        </BarChart>
+                        </LineChart>
                     </ResponsiveContainer>
                 )}
                 <p className="text-xs text-text-body dark:text-dark-text-body mt-2">
-                    Click a bar to see daily breakdown
+                    Click a point to see daily breakdown
                 </p>
             </div>
 
+            {/* Company breakdown for administrators */}
+            {isAdministrator && data?.companies?.length > 0 && (
+                <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow mb-8">
+                    <h2 className="text-lg font-semibold text-text-heading dark:text-dark-text-heading mb-4">
+                        Company Breakdown (Last 12 Months)
+                    </h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-border-light dark:border-dark-border">
+                                    <th className="text-left py-2 px-3 text-text-heading dark:text-dark-text-heading">Company</th>
+                                    <th className="text-right py-2 px-3 text-text-heading dark:text-dark-text-heading">SMS Sent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.companies.map((company, idx) => (
+                                    <tr key={idx} className="border-b border-border-light/50 dark:border-dark-border/50">
+                                        <td className="py-2 px-3 text-text-body dark:text-dark-text-body">{company.name}</td>
+                                        <td className="py-2 px-3 text-right text-text-heading dark:text-dark-text-heading font-medium">{company.count.toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* Month selector dropdown */}
             <div className="mb-4">
-                <label className="text-sm text-text-body dark:text-dark-text-body mr-2">
+                <label className="text-sm text-text-body dark:text-dark-text-tertiary mr-2">
                     Select month:
                 </label>
                 <select
                     value={selectedMonth || ''}
                     onChange={(e) => setSelectedMonth(e.target.value || null)}
-                    className="rounded border border-border-light dark:border-dark-border bg-card-bg dark:bg-dark-card-bg text-text-heading dark:text-dark-text-heading px-3 py-1.5 text-sm"
+                    className="rounded border border-border-light dark:border-dark-border bg-card-bg dark:bg-dark-card-bg text-text-heading dark:text-dark-text-primary px-3 py-1.5 text-sm"
                 >
                     <option value="">Choose a month...</option>
                     {[...data.monthly].reverse().map(m => (
@@ -180,9 +213,10 @@ export function SmsUsageReport() {
                                     />
                                     <Tooltip
                                         contentStyle={{
-                                            backgroundColor: 'var(--color-card-bg)',
-                                            border: '1px solid var(--color-border-light)',
+                                            backgroundColor: colors.cardBg,
+                                            border: `1px solid ${colors.border}`,
                                             borderRadius: '0.5rem',
+                                            color: colors.text,
                                         }}
                                     />
                                     <Line

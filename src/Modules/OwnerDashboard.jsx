@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
-export function Owner() {
+export function OwnerDashboard() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const [formData, setFormData] = useState({
@@ -271,22 +271,6 @@ export function Owner() {
                     Send Invitation
                 </button>
             </form>
-
-
-
-            <a
-                href="/dash/change-password"
-                className="bg-primary text-dark-text-primary p-2 rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover text-center"
-            >
-                Change Password
-            </a>
-            
-            <a 
-                href="/dash"
-                className="mt-4 inline-block text-primary hover:underline dark:text-dark-text-blue dark:hover:text-dark-primary-hover"
-            >
-                Back to Manager Dashboard
-            </a>
         </div>
     )
 }

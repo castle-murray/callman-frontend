@@ -31,7 +31,7 @@ const FillRequestList = lazy(() => import('./Modules/FillRequestList').then(m =>
 const EditLaborReqirement = lazy(() => import('./Modules/EditLaborReqirement').then(m => ({ default: m.EditLaborReqirement })))
 const Skills = lazy(() => import('./Modules/Skills').then(m => ({ default: m.Skills })))
 const Locations = lazy(() => import('./Modules/Locations').then(m => ({ default: m.Locations })))
-const Owner = lazy(() => import('./Modules/Owner').then(m => ({ default: m.Owner })))
+const Settings = lazy(() => import('./Modules/Settings').then(m => ({ default: m.Settings })))
 const StewardDashboard = lazy(() => import('./Modules/StewardDashboard').then(m => ({ default: m.StewardDashboard })))
 const UserProfile = lazy(() => import('./Modules/UserProfile').then(m => ({ default: m.UserProfile })))
 const PendingRequestsList = lazy(() => import('./Modules/PendingRequestsList').then(m => ({ default: m.PendingRequestsList })))
@@ -84,7 +84,7 @@ const routes = [
       { path: "skills", element: <Skills /> },
       { path: "labor/:laborSlug/edit", element: <EditLaborReqirement /> },
       { path: "locations", element: <Locations /> },
-      { path: "company/settings", element: <Owner /> },
+      { path: "settings", element: <Settings /> },
       { path: "steward", element: <StewardDashboard /> },
       { path: "profile", element: <UserProfile /> },
       { path: "pending-requests", element: <PendingRequestsList /> },

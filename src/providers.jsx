@@ -6,6 +6,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { MessageProvider } from './contexts/MessageContext'
+import { UserProvider } from './contexts/UserContext'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -33,9 +34,11 @@ export function Providers({ children }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MessageProvider>
-        {children}
-      </MessageProvider>
+      <UserProvider>
+        <MessageProvider>
+          {children}
+        </MessageProvider>
+      </UserProvider>
     </QueryClientProvider>
   )
 }
