@@ -65,6 +65,28 @@ export function LaborRequestList({
         }
     })
 
+    const bulkDeleteMutation = useMutation({
+        mutationFn: async (laborRequestTokens) => {
+            const promises = laborRequestTokens.map(token =>
+                api.post(`/request/${token}/action/`, {
+                    action: 'delete',
+                    response: 'delete'
+                })
+            )
+            return Promise.all(promises)
+        },
+        onSuccess: () => {
+            const queryKey = isCallTime
+                ? ['callTimeRequests', callTime.slug]
+                : ['laborRequests', laborRequirement.slug]
+            queryClient.invalidateQueries(queryKey)
+            addMessage('All requests deleted successfully', 'success')
+        },
+        onError: (error) => {
+            addMessage('Error deleting requests: ' + error.message, 'error')
+        }
+    })
+
     const handleRequestAction = (laborRequest, action, avresponse) => {
         handleRequestMutation.mutate({ laborRequest, action, avresponse })
 
@@ -77,6 +99,17 @@ export function LaborRequestList({
             return
         }
         bulkConfirmMutation.mutate(ids)
+    }
+
+    const handleBulkDelete = (requests) => {
+        const tokens = requests.map(req => req.token_short)
+        if (tokens.length === 0) {
+            addMessage('No requests to delete', 'info')
+            return
+        }
+        if (confirm(`Are you sure you want to delete ${tokens.length} request(s)?`)) {
+            bulkDeleteMutation.mutate(tokens)
+        }
     }
 
     // Filter requests by type
@@ -93,18 +126,23 @@ export function LaborRequestList({
         return requests.filter(req => req.labor_requirement.labor_type.id.toString() === selectedLaborType)
     }
 
-    const RequestList = ({ requests, title, textColor, actionButtons, bulkConfirm }) => (
+    const RequestList = ({ requests, title, textColor, actionButtons, bulkActions }) => (
         <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
                 <h2 className={`text-xl font-semibold ${textColor}`}>{title}</h2>
-                {bulkConfirm?.show && (
-                    <button
-                        onClick={() => bulkConfirm.onConfirm(requests)}
-                        disabled={bulkConfirmMutation.isPending}
-                        className="bg-success text-dark-text-primary px-4 py-2 rounded hover:bg-success-hover dark:bg-dark-success dark:hover:bg-dark-success-hover disabled:opacity-50"
-                    >
-                        {bulkConfirmMutation.isPending ? 'Confirming...' : bulkConfirm.label}
-                    </button>
+                {bulkActions && bulkActions.length > 0 && (
+                    <div className="flex gap-2">
+                        {bulkActions.map((action, index) => (
+                            <button
+                                key={index}
+                                onClick={() => action.onClick(requests)}
+                                disabled={action.isPending}
+                                className={action.className}
+                            >
+                                {action.isPending ? action.loadingLabel : action.label}
+                            </button>
+                        ))}
+                    </div>
                 )}
             </div>
             {requests.length > 0 ? (
@@ -217,11 +255,22 @@ export function LaborRequestList({
                             className: "bg-secondary text-dark-text-primary px-2 py-1 rounded hover:bg-secondary-hover dark:bg-dark-secondary dark:hover:bg-dark-secondary-hover"
                         }
                     ]}
-                    bulkConfirm={isCallTimePage ? {
-                        show: true,
-                        onConfirm: handleBulkConfirm,
-                        label: 'Confirm All'
-                    } : undefined}
+                    bulkActions={isCallTimePage ? [
+                        {
+                            label: 'Confirm All',
+                            loadingLabel: 'Confirming...',
+                            onClick: handleBulkConfirm,
+                            isPending: bulkConfirmMutation.isPending,
+                            className: "bg-success text-dark-text-primary px-4 py-2 rounded hover:bg-success-hover dark:bg-dark-success dark:hover:bg-dark-success-hover disabled:opacity-50"
+                        },
+                        {
+                            label: 'Delete All',
+                            loadingLabel: 'Deleting...',
+                            onClick: handleBulkDelete,
+                            isPending: bulkDeleteMutation.isPending,
+                            className: "bg-danger text-dark-text-primary px-4 py-2 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover disabled:opacity-50"
+                        }
+                    ] : undefined}
                 />
 
                 {/* Available Requests */}
@@ -249,11 +298,15 @@ export function LaborRequestList({
                             className: "bg-secondary text-dark-text-primary px-2 py-1 rounded hover:bg-secondary-hover dark:bg-dark-secondary dark:hover:bg-dark-secondary-hover"
                         }
                     ]}
-                    bulkConfirm={isCallTimePage ? {
-                        show: true,
-                        onConfirm: handleBulkConfirm,
-                        label: 'Confirm All'
-                    } : undefined}
+                    bulkActions={isCallTimePage ? [
+                        {
+                            label: 'Confirm All',
+                            loadingLabel: 'Confirming...',
+                            onClick: handleBulkConfirm,
+                            isPending: bulkConfirmMutation.isPending,
+                            className: "bg-success text-dark-text-primary px-4 py-2 rounded hover:bg-success-hover dark:bg-dark-success dark:hover:bg-dark-success-hover disabled:opacity-50"
+                        }
+                    ] : undefined}
                 />
 
                 {/* Confirmed Requests */}
