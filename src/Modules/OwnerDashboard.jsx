@@ -64,12 +64,15 @@ export function OwnerDashboard() {
 
             // Append logo file if present
             if (logoFile) {
+                console.log('Uploading logo file:', logoFile.name, logoFile.size, 'bytes')
                 formData.append('logo', logoFile)
             }
 
+            console.log('Submitting company settings...')
             const response = await api.patch('/company/settings/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             })
+            console.log('Settings saved successfully:', response.data)
             return response.data
         },
         onSuccess: () => {
@@ -79,8 +82,18 @@ export function OwnerDashboard() {
             queryClient.invalidateQueries(['owner'])
         },
         onError: (error) => {
+            console.error('Settings save error:', error.response?.data)
             const errorMessage = error.response?.data?.message || 'Failed to save settings'
-            addMessage(errorMessage, 'error')
+            const validationErrors = error.response?.data?.errors
+
+            if (validationErrors) {
+                const errorDetails = Object.entries(validationErrors)
+                    .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+                    .join('; ')
+                addMessage(`${errorMessage} - ${errorDetails}`, 'error')
+            } else {
+                addMessage(errorMessage, 'error')
+            }
         }
     })
 
