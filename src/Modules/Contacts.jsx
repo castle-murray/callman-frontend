@@ -55,6 +55,8 @@ export function Contacts() {
     const [showImportModal, setShowImportModal] = useState(false)
     const [importFile, setImportFile] = useState(null)
     const [deleteConfirm, setDeleteConfirm] = useState(null) // { type: 'worker'|'alt'|'primary', ...params }
+    const [showCounters, setShowCounters] = useState(null) // worker id showing counters
+    const [counterValues, setCounterValues] = useState({}) // { workerId: { ncns, cancelled } }
     const { addMessage } = useMessages()
 
     useEffect(() => {
@@ -255,6 +257,73 @@ export function Contacts() {
         updateLaborMutation.mutate({id: contactId, labor_types: laborForm})
     }
 
+    const adjustCounterMutation = useMutation({
+        mutationFn: async ({ slug, ncns, cancelled }) => {
+            const currentWorker = contacts.find(c => c.slug === slug)
+            const promises = []
+
+            // Adjust NCNS if changed
+            const ncnsDiff = ncns - (currentWorker.nocallnoshow || 0)
+            if (ncnsDiff !== 0) {
+                const action = ncnsDiff > 0 ? 'increment' : 'decrement'
+                for (let i = 0; i < Math.abs(ncnsDiff); i++) {
+                    promises.push(api.post(`/workers/${slug}/adjust-ncns/`, { action }))
+                }
+            }
+
+            // Adjust cancelled if changed
+            const cancelledDiff = cancelled - (currentWorker.canceled_requests || 0)
+            if (cancelledDiff !== 0) {
+                const action = cancelledDiff > 0 ? 'increment' : 'decrement'
+                for (let i = 0; i < Math.abs(cancelledDiff); i++) {
+                    promises.push(api.post(`/workers/${slug}/adjust-cancelled/`, { action }))
+                }
+            }
+
+            await Promise.all(promises)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['contacts'])
+            addMessage('Counters updated successfully', 'success')
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to update counters', 'error')
+        }
+    })
+
+    const handleCounterChange = (workerId, type, delta) => {
+        setCounterValues(prev => {
+            const worker = contacts.find(c => c.id === workerId)
+            const current = prev[workerId] || {
+                ncns: worker?.nocallnoshow || 0,
+                cancelled: worker?.canceled_requests || 0
+            }
+            return {
+                ...prev,
+                [workerId]: {
+                    ...current,
+                    [type]: Math.max(0, current[type] + delta)
+                }
+            }
+        })
+    }
+
+    const handleSubmitCounters = (contact) => {
+        const values = counterValues[contact.id] || {
+            ncns: contact.nocallnoshow || 0,
+            cancelled: contact.canceled_requests || 0
+        }
+        adjustCounterMutation.mutate({
+            slug: contact.slug,
+            ncns: values.ncns,
+            cancelled: values.cancelled
+        })
+    }
+
+    const getCounterValue = (workerId, type, defaultValue) => {
+        return counterValues[workerId]?.[type] ?? defaultValue
+    }
+
     if (isLoading) return <div>Loading...</div>
     if (error) return <div>Error: {error.message}</div>
     if (!data) return <div>No contacts</div>
@@ -388,7 +457,64 @@ export function Contacts() {
                                 </form>
                             ) : (
                                 <div className="flex-1">
-                                    {contact.name} - {formatPhone(contact.phone_number)}
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-text-heading dark:text-dark-text-primary">{contact.name} - {formatPhone(contact.phone_number)}</span>
+                                        {/* Show counters only if toggled */}
+                                        {showCounters === contact.id && (
+                                            <>
+                                                {/* NCNS Counter */}
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-xs text-text-tertiary dark:text-dark-text-tertiary">NCNS:</span>
+                                                    <button
+                                                        onClick={() => handleCounterChange(contact.id, 'ncns', -1)}
+                                                        className="px-1 text-xs bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 text-text-heading dark:text-dark-text-primary"
+                                                        title="Decrement NCNS"
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <span className="text-sm font-semibold text-text-heading dark:text-dark-text-primary min-w-[1.5rem] text-center">
+                                                        {getCounterValue(contact.id, 'ncns', contact.nocallnoshow || 0)}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleCounterChange(contact.id, 'ncns', 1)}
+                                                        className="px-1 text-xs bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 text-text-heading dark:text-dark-text-primary"
+                                                        title="Increment NCNS"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                                {/* Cancelled Counter */}
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-xs text-text-tertiary dark:text-dark-text-tertiary">Cancelled:</span>
+                                                    <button
+                                                        onClick={() => handleCounterChange(contact.id, 'cancelled', -1)}
+                                                        className="px-1 text-xs bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 text-text-heading dark:text-dark-text-primary"
+                                                        title="Decrement Cancelled"
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <span className="text-sm font-semibold text-text-heading dark:text-dark-text-primary min-w-[1.5rem] text-center">
+                                                        {getCounterValue(contact.id, 'cancelled', contact.canceled_requests || 0)}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleCounterChange(contact.id, 'cancelled', 1)}
+                                                        className="px-1 text-xs bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 text-text-heading dark:text-dark-text-primary"
+                                                        title="Increment Cancelled"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                                {/* Submit Button */}
+                                                <button
+                                                    onClick={() => handleSubmitCounters(contact)}
+                                                    disabled={adjustCounterMutation.isPending}
+                                                    className="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover disabled:opacity-50"
+                                                >
+                                                    {adjustCounterMutation.isPending ? 'Saving...' : 'Save'}
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                     <button
                                         onClick={() => setAddingAlt(addingAlt === contact.id ? null : contact.id)}
                                         onMouseEnter={() => setTooltip({show: true, text: 'add an alternate phone number'})}
@@ -442,6 +568,7 @@ export function Contacts() {
                                             { text: 'Edit', onClick: () => { setEditingId(contact.id); setEditForm({name: contact.name, phone_number: contact.phone_number}); setLaborMenu(null) } },
                                             { text: 'Skills', onClick: () => { setEditingLaborTypes(contact.id); setLaborForm(contact.labor_types?.map(lt => lt.id) || []); setLaborMenu(null) } },
                                             { text: 'History', onClick: () => { navigate(`/dash/workers/${contact.slug}/history`); setLaborMenu(null) } },
+                                            { text: showCounters === contact.id ? 'Hide Counters' : 'Show Counters', onClick: () => { setShowCounters(showCounters === contact.id ? null : contact.id); setLaborMenu(null) } },
                                             { text: 'Delete', onClick: () => { setDeleteConfirm({ type: 'worker', id: contact.id }); setLaborMenu(null) }, className: 'text-danger dark:text-dark-danger', disabled: deleteMutation.isLoading }
                                         ]}
                                         isOpen={laborMenu === contact.id}
