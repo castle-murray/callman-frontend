@@ -5,6 +5,46 @@ import api from '../api'
 import Header from '../components/Header'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 
+// Helper function to generate Google Calendar link
+function generateGoogleCalendarLink(event, callTime, laborType) {
+    const title = `${event.event_name} - ${callTime.name} - ${laborType.name}`
+
+    // Parse the date and time to create start datetime
+    const date = new Date(callTime.date)
+    const [hours, minutes] = callTime.time ? callTime.time.split(':') : ['00', '00']
+    date.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+    // Assume 4 hour duration if not specified (can be adjusted)
+    const endDate = new Date(date)
+    endDate.setHours(endDate.getHours() + 4)
+
+    // Format dates for Google Calendar (YYYYMMDDTHHmmss)
+    const formatGoogleDate = (d) => {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        const hour = String(d.getHours()).padStart(2, '0')
+        const minute = String(d.getMinutes()).padStart(2, '0')
+        return `${year}${month}${day}T${hour}${minute}00`
+    }
+
+    const startTime = formatGoogleDate(date)
+    const endTime = formatGoogleDate(endDate)
+
+    const location = event.location || ''
+    const details = `Labor Type: ${laborType.name}`
+
+    const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: title,
+        dates: `${startTime}/${endTime}`,
+        details: details,
+        location: location
+    })
+
+    return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
 export function ConfirmRequests() {
     const navigate = useNavigate()
     const { slug, event_token } = useParams()
@@ -84,17 +124,30 @@ export function ConfirmRequests() {
 
             {confirmed_call_times.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Confirmed Call Times</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-text-heading dark:text-dark-text-primary">Confirmed Call Times</h2>
                     {confirmed_call_times.map(req => (
-                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2 flex justify-between items-center">
-                            <p>{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
-                            <button
-                                onClick={() => setCancelToken(req.token_short)}
-                                disabled={cancelMutation.isPending}
-                                className="bg-danger text-white px-3 py-1 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover disabled:opacity-50"
+                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2">
+                            <div className="flex justify-between items-center mb-2">
+                                <p className="text-text-heading dark:text-dark-text-primary">{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
+                                <button
+                                    onClick={() => setCancelToken(req.token_short)}
+                                    disabled={cancelMutation.isPending}
+                                    className="bg-danger text-white px-3 py-1 rounded hover:bg-danger-hover dark:bg-dark-danger dark:hover:bg-dark-danger-hover disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                            <a
+                                href={generateGoogleCalendarLink(event, req.labor_requirement.call_time, req.labor_requirement.labor_type)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-hover dark:text-dark-text-blue dark:hover:text-dark-primary-hover"
                             >
-                                Cancel
-                            </button>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+                                </svg>
+                                Add to Google Calendar
+                            </a>
                         </div>
                     ))}
                     {qr_code_data && (
@@ -109,9 +162,9 @@ export function ConfirmRequests() {
 
             {available_call_times.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Available Call Times</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-text-heading dark:text-dark-text-primary">Available Call Times</h2>
                     {available_call_times.map(req => (
-                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2">
+                        <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2 text-text-heading dark:text-dark-text-primary">
                             {req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}
                         </div>
                     ))}
@@ -120,10 +173,10 @@ export function ConfirmRequests() {
 
             {pending_call_times.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Pending Call Times</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-text-heading dark:text-dark-text-primary">Pending Call Times</h2>
                     {pending_call_times.map(req => (
                         <div key={req.id} className="bg-card-bg dark:bg-dark-card-bg p-4 rounded mb-2 flex justify-between items-center">
-                            <p>{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
+                            <p className="text-text-heading dark:text-dark-text-primary">{req.labor_requirement.call_time.name} - {req.labor_requirement.labor_type.name}</p>
                             <div className="flex space-x-4">
                                 <button
                                     onClick={() => handleResponse(req.id, 'yes')}
