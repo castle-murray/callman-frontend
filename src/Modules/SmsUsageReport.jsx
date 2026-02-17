@@ -72,9 +72,15 @@ export function SmsUsageReport() {
     }, [data])
 
     const dailyData = useMemo(() => {
-        if (!selectedMonth || !data?.daily?.[selectedMonth]) return []
-        return data.daily[selectedMonth]
-    }, [data, selectedMonth])
+        if (!selectedMonth) return []
+        if (isAdministrator && data?.daily_by_company?.[selectedMonth]) {
+            return data.daily_by_company[selectedMonth]
+        }
+        if (data?.daily?.[selectedMonth]) {
+            return data.daily[selectedMonth]
+        }
+        return []
+    }, [data, selectedMonth, isAdministrator])
 
     const companyNames = useMemo(() => {
         if (!isAdministrator || !data?.monthly_by_company?.length) return []
@@ -274,14 +280,35 @@ export function SmsUsageReport() {
                                             color: colors.text,
                                         }}
                                     />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="count"
-                                        stroke={colors.primary}
-                                        strokeWidth={2}
-                                        dot={{ fill: colors.primary, r: 3 }}
-                                        activeDot={{ r: 5 }}
-                                    />
+                                    {isAdministrator && companyNames.length > 0 ? (
+                                        <>
+                                            <Legend
+                                                wrapperStyle={{ color: colors.text }}
+                                                iconType="line"
+                                            />
+                                            {companyNames.map((companyName, idx) => (
+                                                <Line
+                                                    key={companyName}
+                                                    type="monotone"
+                                                    dataKey={companyName}
+                                                    name={companyName}
+                                                    stroke={companyColors[idx]}
+                                                    strokeWidth={2}
+                                                    dot={{ fill: companyColors[idx], r: 3 }}
+                                                    activeDot={{ r: 5 }}
+                                                />
+                                            ))}
+                                        </>
+                                    ) : (
+                                        <Line
+                                            type="monotone"
+                                            dataKey="count"
+                                            stroke={colors.primary}
+                                            strokeWidth={2}
+                                            dot={{ fill: colors.primary, r: 3 }}
+                                            activeDot={{ r: 5 }}
+                                        />
+                                    )}
                                 </LineChart>
                             </ResponsiveContainer>
 
