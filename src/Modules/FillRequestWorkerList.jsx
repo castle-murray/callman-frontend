@@ -197,7 +197,10 @@ export function FillRequestWorkerList({
                                     : ''
                             } text-text-tertiary dark:text-dark-text-tertiary`}>
                                 <div>
-                                    <div className="font-medium">
+                                    <div className="font-medium flex items-center">
+                                        {worker.labor_types.some(type => type.id === laborRequirementType?.id) && (
+                                            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                                        )}
                                         {worker.name || "Unnamed Worker"} - {worker.formatted_phone_number || formatPhoneNumber(worker.phone_number) || "No phone"}
 
                                         {worker.alt_phones && worker.alt_phones.length > 0 && (
