@@ -26,6 +26,8 @@ export function TimeSheet() {
     const [massClockOut, setMassClockOut] = useState(new Date().toISOString().slice(0, 16))
     const [massBreakTime, setMassBreakTime] = useState(new Date().toISOString().slice(0, 16))
     const [massBreakDuration, setMassBreakDuration] = useState('30')
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+    const [pdfProgress, setPdfProgress] = useState(0)
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['timeSheet', slug],
@@ -121,39 +123,184 @@ export function TimeSheet() {
         return `${month}/${day}/${year.slice(-2)}`
     }
 
-    const generatePDF = () => {
-        const doc = new jsPDF();
-        const headerText = `${call_time.event_name || ''} - ${call_time.name} - ${formatDate(call_time.date)} - ${call_time.time ? formatTimeSimple(call_time.time) : ''}`.trim();
-        // Header
+    const generatePDF = async () => {
+        setIsGeneratingPDF(true)
+        setPdfProgress(0)
+        try {
+            // Step 1: Initialize PDF (5%)
+            setPdfProgress(5)
+            const doc = new jsPDF();
+            const headerText = `${call_time.event_name || ''} - ${call_time.name} - ${formatDate(call_time.date)} - ${call_time.time ? formatTimeSimple(call_time.time) : ''}`.trim();
+
+            let logoBase64 = null;
+            let logoFormat = 'JPEG';
+
+            // Step 2: Load logo (10-25%)
+            if (company_logo) {
+                setPdfProgress(10)
+                console.log('Loading logo from:', company_logo);
+                try {
+                    // Create an image element and wait for it to load
+                    logoBase64 = await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+
+                    img.onload = () => {
+                        console.log('Logo loaded successfully');
+                        // Create canvas to convert image to base64
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        // Detect format from URL
+                        if (company_logo.toLowerCase().includes('.png')) logoFormat = 'PNG';
+                        else if (company_logo.toLowerCase().includes('.jpg') || company_logo.toLowerCase().includes('.jpeg')) logoFormat = 'JPEG';
+                        else if (company_logo.toLowerCase().includes('.webp')) logoFormat = 'WEBP';
+                        else if (company_logo.toLowerCase().includes('.gif')) logoFormat = 'GIF';
+
+                        const dataUrl = canvas.toDataURL(`image/${logoFormat.toLowerCase()}`);
+                        resolve(dataUrl);
+                    };
+
+                    img.onerror = (error) => {
+                        console.error('Error loading logo image:', error);
+                        reject(error);
+                    };
+
+                    img.src = company_logo;
+                });
+                setPdfProgress(25)
+                console.log('Logo base64 generated, format:', logoFormat);
+            } catch (error) {
+                console.error('Error processing logo:', error);
+            }
+        } else {
+            setPdfProgress(25)
+            console.log('No company logo available');
+        }
+
+        // Step 3: Add header elements (30%)
+        setPdfProgress(30)
+
+        // Add logo to first page
+        if (logoBase64) {
+            doc.addImage(logoBase64, logoFormat, 10, 10, 40, 15);
+        } else {
+            // Only show company name if no logo
+            doc.setFontSize(14);
+            doc.text(company_name || 'Company Name', 20, 20);
+        }
+
+        // Header text (event info) - dynamically size to fit
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const rightMargin = 10;
+        const leftPosition = logoBase64 ? 55 : 20;
+        const availableWidth = pageWidth - leftPosition - rightMargin;
+
         doc.setFontSize(14);
-        doc.text(company_name || 'Company Name', 20, 20);
-        doc.text(headerText, 120, 20);
-        // Table
+        let textWidth = doc.getTextWidth(headerText);
+
+        // Reduce font size if text is too wide
+        let fontSize = 14;
+        while (textWidth > availableWidth && fontSize > 8) {
+            fontSize -= 1;
+            doc.setFontSize(fontSize);
+            textWidth = doc.getTextWidth(headerText);
+        }
+
+        // Right-align the text
+        doc.text(headerText, pageWidth - rightMargin, 20, { align: 'right' });
+
+        // Step 4: Build table data (35-70%)
+        setPdfProgress(35)
         const tableData = [];
-        labor_requests.filter(request => request.time_entry).forEach(request => {
-                const breaks = (request.time_entry.meal_breaks || []).slice().sort((a, b) => new Date(a.break_time) - new Date(b.break_time));
-                const row = [
-                    request.worker?.name || 'N/A',
-                    request.labor_requirement?.labor_type?.name || 'N/A',
-                    request.time_entry.start_time ? formatTime(request.time_entry.start_time) : 'N/A',
-                    breaks.map(mb => formatTime(mb.break_time) + (mb.duration === 60 ? "(1hr)" : "(" + mb.duration + "m)")).join(', '),
-                    request.time_entry.end_time ? formatTime(request.time_entry.end_time) : 'N/A',
-                    `${request.time_entry.normal_hours ? request.time_entry.normal_hours.toFixed(2).replace(/\.?0+$/, '') : '0'} | ${request.time_entry.meal_penalty_hours ? request.time_entry.meal_penalty_hours.toFixed(2).replace(/\.?0+$/, '') : '0'} | ${request.time_entry.total_hours_worked ? request.time_entry.total_hours_worked.toFixed(2).replace(/\.?0+$/, '') : '0'}`
-                ];
-                tableData.push(row);
+        const requestsWithTimeEntry = labor_requests.filter(request => request.time_entry);
+        const totalRequests = requestsWithTimeEntry.length;
+
+        requestsWithTimeEntry.forEach((request, index) => {
+            const breaks = (request.time_entry.meal_breaks || []).slice().sort((a, b) => new Date(a.break_time) - new Date(b.break_time));
+            const row = [
+                request.worker?.name || 'N/A',
+                request.labor_requirement?.labor_type?.name || 'N/A',
+                request.time_entry.start_time ? formatTime(request.time_entry.start_time) : 'N/A',
+                breaks.map(mb => formatTime(mb.break_time) + (mb.duration === 60 ? "(1hr)" : "(" + mb.duration + "m)")).join(', '),
+                request.time_entry.end_time ? formatTime(request.time_entry.end_time) : 'N/A',
+                `${request.time_entry.normal_hours ? request.time_entry.normal_hours.toFixed(2).replace(/\.?0+$/, '') : '0'} | ${request.time_entry.meal_penalty_hours ? request.time_entry.meal_penalty_hours.toFixed(2).replace(/\.?0+$/, '') : '0'} | ${request.time_entry.total_hours_worked ? request.time_entry.total_hours_worked.toFixed(2).replace(/\.?0+$/, '') : '0'}`
+            ];
+            tableData.push(row);
+
+            // Update progress for every 10% of workers processed
+            if (index % Math.max(1, Math.floor(totalRequests / 10)) === 0) {
+                const progress = 35 + Math.floor((index / totalRequests) * 35);
+                setPdfProgress(progress);
+            }
         });
+
+        setPdfProgress(70);
+
+        // Step 5: Render table (75-95%)
+        setPdfProgress(75)
         autoTable(doc, {
             head: [['Name', 'Role', 'Clock In', 'Breaks', 'Clock Out', 'Reg|MP|Total']],
             body: tableData,
             startY: 30,
-            margin: { top: 30 },
-            didDrawPage: (data) => {
+            margin: { top: 30, bottom: 30 },
+            didDrawPage: (pageData) => {
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // Add logo and header on each page
+                if (logoBase64) {
+                    doc.addImage(logoBase64, logoFormat, 10, 10, 40, 15);
+                } else {
+                    // Only show company name if no logo
+                    doc.setFontSize(14);
+                    doc.text(company_name || 'Company Name', 20, 20);
+                }
+
+                // Header text (event info) - dynamically size to fit
+                const rightMargin = 10;
+                const leftPosition = logoBase64 ? 55 : 20;
+                const availableWidth = pageWidth - leftPosition - rightMargin;
+
                 doc.setFontSize(14);
-                doc.text(company_name || 'Company Name', 20, 20);
-                doc.text(headerText, 120, 20);
+                let textWidth = doc.getTextWidth(headerText);
+
+                // Reduce font size if text is too wide
+                let fontSize = 14;
+                while (textWidth > availableWidth && fontSize > 8) {
+                    fontSize -= 1;
+                    doc.setFontSize(fontSize);
+                    textWidth = doc.getTextWidth(headerText);
+                }
+
+                // Right-align the text
+                doc.text(headerText, pageWidth - rightMargin, 20, { align: 'right' });
+
+                // Add signature line at bottom of last page
+                if (pageData.pageNumber === doc.internal.pages.length - 1) {
+                    const signatureY = pageHeight - 10;
+                    doc.setFontSize(10);
+                    doc.text('Sign:', 20, signatureY);
+                    doc.line(35, signatureY, 100, signatureY);
+                    doc.text('Date:', 110, signatureY);
+                    doc.line(125, signatureY, 150, signatureY);
+                }
             },
         });
-        doc.save(`${call_time.event_name}-${call_time.name}.pdf`);
+
+            // Step 6: Save PDF (95-100%)
+            setPdfProgress(95)
+            doc.save(`${call_time.event_name}-${call_time.name}.pdf`);
+            setPdfProgress(100)
+        } catch (error) {
+            console.error('Error generating PDF:', error)
+            addMessage('Error generating PDF: ' + error.message, 'error')
+        } finally {
+            setIsGeneratingPDF(false)
+        }
     };
 
     if (error) {
@@ -165,7 +312,7 @@ export function TimeSheet() {
 
     if (!data) return <div>No data</div>
 
-    const { call_time, labor_requests, labor_types, meal_penalty_trigger_time, meal_penalty_diff, company_name } = data
+    const { call_time, labor_requests, labor_types, meal_penalty_trigger_time, meal_penalty_diff, company_name, company_logo } = data
 
     const confirmedRequests = labor_requests.filter(request => !request.ncns)
     const ncnsRequests = labor_requests.filter(request => request.ncns)
@@ -461,9 +608,21 @@ export function TimeSheet() {
                 }
                 `}
             </style>
+            <style>
+                {`
+                @media print {
+                    .print-header { display: block !important; }
+                }
+                `}
+            </style>
             <div className="print-header hidden">
-                <div className="flex justify-between mb-4">
-                    <div className="font-bold text-lg">{company_name}</div>
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-4">
+                        {company_logo && (
+                            <img src={company_logo} alt="Company Logo" className="h-12 max-w-[120px] object-contain" />
+                        )}
+                        <div className="font-bold text-lg">{company_name}</div>
+                    </div>
                     <div className="font-bold text-lg">{call_time.name} at {formatTimeSimple(call_time.time)} on {new Date(call_time.date).toLocaleDateString()}</div>
                 </div>
             </div>
@@ -527,10 +686,28 @@ export function TimeSheet() {
                 <button onClick={applyMassAction} disabled={selected.length === 0 || !massAction} className="bg-primary text-dark-text-primary px-4 py-2 rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover disabled:opacity-50 disabled:cursor-not-allowed">
                     Apply to Selected ({selected.length})
                 </button>
-                <div className="ml-auto">
-                    <button onClick={() => generatePDF()} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Print PDF
+                <div className="ml-auto flex flex-col items-end gap-2">
+                    <button
+                        onClick={() => generatePDF()}
+                        disabled={isGeneratingPDF}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isGeneratingPDF && (
+                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        )}
+                        {isGeneratingPDF ? `Generating PDF... ${pdfProgress}%` : 'Print PDF'}
                     </button>
+                    {isGeneratingPDF && (
+                        <div className="w-48 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div
+                                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                                style={{ width: `${pdfProgress}%` }}
+                            ></div>
+                        </div>
+                    )}
                 </div>
             </div>
             {renderTable(filteredConfirmedRequests, 'Confirmed Workers')}

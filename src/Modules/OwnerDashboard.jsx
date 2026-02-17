@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import { useMessages } from '../contexts/MessageContext'
 
 export function OwnerDashboard() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
+    const { addMessage } = useMessages()
     const [formData, setFormData] = useState({
         name: '',
         name_short: '',
@@ -19,6 +21,8 @@ export function OwnerDashboard() {
         meal_penalty_trigger_time: '',
         hour_round_up: ''
     })
+    const [logoPreview, setLogoPreview] = useState(null)
+    const [logoFile, setLogoFile] = useState(null)
 
 
     const { data, error, isLoading } = useQuery({
@@ -49,11 +53,51 @@ export function OwnerDashboard() {
 
     const ownerMutation = useMutation({
         mutationFn: async (ownerData) => {
-            const response = await api.patch('/company/settings/', ownerData)
+            const formData = new FormData()
+
+            // Append all form fields
+            Object.keys(ownerData).forEach(key => {
+                if (ownerData[key] !== null && ownerData[key] !== undefined && ownerData[key] !== '') {
+                    formData.append(key, ownerData[key])
+                }
+            })
+
+            // Append logo file if present
+            if (logoFile) {
+                formData.append('logo', logoFile)
+            }
+
+            const response = await api.patch('/company/settings/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            })
             return response.data
         },
         onSuccess: () => {
+            addMessage('Settings saved successfully', 'success')
+            setLogoFile(null)
+            setLogoPreview(null)
             queryClient.invalidateQueries(['owner'])
+        },
+        onError: (error) => {
+            const errorMessage = error.response?.data?.message || 'Failed to save settings'
+            addMessage(errorMessage, 'error')
+        }
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: async () => {
+            const response = await api.delete('/company/logo/delete/')
+            return response.data
+        },
+        onSuccess: () => {
+            addMessage('Logo removed', 'success')
+            setLogoPreview(null)
+            setLogoFile(null)
+            queryClient.invalidateQueries(['owner'])
+        },
+        onError: (error) => {
+            const errorMessage = error.response?.data?.message || 'Failed to remove logo'
+            addMessage(errorMessage, 'error')
         }
     })
 
@@ -63,6 +107,20 @@ export function OwnerDashboard() {
             ...prev,
             [name]: value
         }))
+    }
+
+    const handleLogoChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setLogoFile(file)
+            setLogoPreview(URL.createObjectURL(file))
+        }
+    }
+
+    const handleDeleteLogo = () => {
+        if (window.confirm('Are you sure you want to remove the company logo?')) {
+            deleteMutation.mutate()
+        }
     }
 
     const handleSubmit = (e) => {
@@ -201,6 +259,48 @@ export function OwnerDashboard() {
                             required 
                             className="w-full p-2 border rounded bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border" 
                         />
+                    </div>
+                </div>
+
+                <h2 className="text-xl font-semibold mb-2 text-text-heading dark:text-dark-text-primary">Company Logo</h2>
+                <div className="flex flex-col gap-4">
+                    {(logoPreview || data?.logo) && (
+                        <div className="flex flex-col gap-2">
+                            <img
+                                src={logoPreview || data.logo}
+                                alt="Company Logo"
+                                className="max-w-xs max-h-32 object-contain border rounded p-2 bg-white dark:bg-dark-card-bg"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleDeleteLogo}
+                                className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 self-start"
+                            >
+                                Remove Logo
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-2">
+                        <input
+                            type="file"
+                            id="logo-upload"
+                            accept="image/png,image/jpeg,image/gif,image/webp"
+                            onChange={handleLogoChange}
+                            className="hidden"
+                        />
+                        <label
+                            htmlFor="logo-upload"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover cursor-pointer transition-colors w-fit"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Choose Logo File
+                        </label>
+                        <p className="text-sm text-text-tertiary dark:text-dark-text-tertiary">
+                            PNG, JPEG, GIF, or WebP. Max 5MB. Min 100x100px, Max 2000x2000px.
+                        </p>
                     </div>
                 </div>
 
