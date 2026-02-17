@@ -19,21 +19,28 @@ function useChartColors() {
     }
 }
 
-// Generate distinct colors for multiple companies
-function getCompanyColors(count) {
-    const colors = [
-        '#3b82f6', // blue
-        '#10b981', // green
-        '#f59e0b', // amber
-        '#ef4444', // red
-        '#8b5cf6', // purple
-        '#ec4899', // pink
-        '#14b8a6', // teal
-        '#f97316', // orange
-        '#6366f1', // indigo
-        '#84cc16', // lime
-    ]
-    return colors.slice(0, count)
+// Generate a consistent color from a string using a simple hash
+function stringToColor(str) {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash)
+    }
+
+    // Generate HSL color with good saturation and lightness for visibility
+    const hue = Math.abs(hash % 360)
+    const saturation = 65 + (Math.abs(hash) % 20) // 65-85%
+    const lightness = 50 + (Math.abs(hash >> 8) % 15) // 50-65%
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+}
+
+// Generate colors for all companies
+function getCompanyColors(companyNames) {
+    const colorMap = {}
+    companyNames.forEach(name => {
+        colorMap[name] = stringToColor(name)
+    })
+    return colorMap
 }
 
 function formatMonth(monthStr) {
@@ -51,6 +58,7 @@ export function SmsUsageReport() {
     const navigate = useNavigate()
     const { user } = useUser()
     const [selectedMonth, setSelectedMonth] = useState(null)
+    const [selectedCompanies, setSelectedCompanies] = useState(new Set())
     const colors = useChartColors()
     const isAdministrator = user?.user?.isAdministrator
 
@@ -94,8 +102,35 @@ export function SmsUsageReport() {
     }, [data, isAdministrator])
 
     const companyColors = useMemo(() => {
-        return getCompanyColors(companyNames.length)
+        return getCompanyColors(companyNames)
     }, [companyNames])
+
+    // Initialize selected companies when company names change
+    useMemo(() => {
+        if (companyNames.length > 0 && selectedCompanies.size === 0) {
+            setSelectedCompanies(new Set(companyNames))
+        }
+    }, [companyNames])
+
+    const toggleCompany = (companyName) => {
+        setSelectedCompanies(prev => {
+            const newSet = new Set(prev)
+            if (newSet.has(companyName)) {
+                newSet.delete(companyName)
+            } else {
+                newSet.add(companyName)
+            }
+            return newSet
+        })
+    }
+
+    const toggleAllCompanies = () => {
+        if (selectedCompanies.size === companyNames.length) {
+            setSelectedCompanies(new Set())
+        } else {
+            setSelectedCompanies(new Set(companyNames))
+        }
+    }
 
     if (isLoading) return <div className="p-6 text-text-body dark:text-dark-text-body">Loading...</div>
     if (error) return <div className="p-6 text-red-500 dark:text-red-400">Error: {error.message}</div>
@@ -166,19 +201,15 @@ export function SmsUsageReport() {
                             />
                             {isAdministrator && companyNames.length > 0 ? (
                                 <>
-                                    <Legend
-                                        wrapperStyle={{ color: colors.text }}
-                                        iconType="line"
-                                    />
-                                    {companyNames.map((companyName, idx) => (
+                                    {companyNames.filter(name => selectedCompanies.has(name)).map((companyName) => (
                                         <Line
                                             key={companyName}
                                             type="monotone"
                                             dataKey={companyName}
                                             name={companyName}
-                                            stroke={companyColors[idx]}
+                                            stroke={companyColors[companyName]}
                                             strokeWidth={2}
-                                            dot={{ fill: companyColors[idx], r: 3 }}
+                                            dot={{ fill: companyColors[companyName], r: 3 }}
                                             activeDot={{ r: 5 }}
                                         />
                                     ))}
@@ -202,6 +233,56 @@ export function SmsUsageReport() {
                     </p>
                 )}
             </div>
+
+            {/* Company selector for administrators */}
+            {isAdministrator && companyNames.length > 0 && (
+                <div className="bg-card-bg dark:bg-dark-card-bg p-4 rounded-lg shadow dark:shadow-dark-shadow mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-semibold text-text-heading dark:text-dark-text-primary">
+                            Select Companies to Display
+                        </h2>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setSelectedCompanies(new Set(companyNames))}
+                                className="text-sm text-primary hover:text-primary-hover dark:text-dark-text-blue dark:hover:text-dark-primary-hover"
+                            >
+                                Select All
+                            </button>
+                            <span className="text-text-body dark:text-dark-text-tertiary">|</span>
+                            <button
+                                onClick={() => setSelectedCompanies(new Set())}
+                                className="text-sm text-primary hover:text-primary-hover dark:text-dark-text-blue dark:hover:text-dark-primary-hover"
+                            >
+                                Deselect All
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {companyNames.map((companyName) => (
+                            <button
+                                key={companyName}
+                                onClick={() => toggleCompany(companyName)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                                    selectedCompanies.has(companyName)
+                                        ? 'bg-primary/10 border-primary dark:bg-dark-primary/10 dark:border-dark-primary'
+                                        : 'bg-card-bg border-border-light dark:bg-dark-card-bg dark:border-dark-border opacity-50'
+                                }`}
+                            >
+                                <span
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: companyColors[companyName] }}
+                                />
+                                <span className="text-sm text-text-heading dark:text-dark-text-primary">
+                                    {companyName}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-text-body dark:text-dark-text-tertiary mt-3">
+                        {selectedCompanies.size} of {companyNames.length} companies selected
+                    </p>
+                </div>
+            )}
 
             {/* Company breakdown for administrators */}
             {isAdministrator && data?.companies?.length > 0 && (
@@ -282,19 +363,15 @@ export function SmsUsageReport() {
                                     />
                                     {isAdministrator && companyNames.length > 0 ? (
                                         <>
-                                            <Legend
-                                                wrapperStyle={{ color: colors.text }}
-                                                iconType="line"
-                                            />
-                                            {companyNames.map((companyName, idx) => (
+                                            {companyNames.filter(name => selectedCompanies.has(name)).map((companyName) => (
                                                 <Line
                                                     key={companyName}
                                                     type="monotone"
                                                     dataKey={companyName}
                                                     name={companyName}
-                                                    stroke={companyColors[idx]}
+                                                    stroke={companyColors[companyName]}
                                                     strokeWidth={2}
-                                                    dot={{ fill: companyColors[idx], r: 3 }}
+                                                    dot={{ fill: companyColors[companyName], r: 3 }}
                                                     activeDot={{ r: 5 }}
                                                 />
                                             ))}
