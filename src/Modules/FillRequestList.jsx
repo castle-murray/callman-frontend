@@ -12,6 +12,38 @@ export function FillRequestList() {
     const queryClient = useQueryClient()
     const { addMessage } = useMessages()
     const errorShown = useRef(false)
+    const [pos, setPos] = useState({ x: 16, y: window.innerHeight - 100 })
+    const dragStart = useRef(null)
+
+    useEffect(() => {
+        const onMove = (e) => {
+            if (!dragStart.current) return
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY
+            setPos({
+                x: dragStart.current.px + clientX - dragStart.current.mx,
+                y: dragStart.current.py + clientY - dragStart.current.my,
+            })
+        }
+        const onUp = () => { dragStart.current = null }
+        window.addEventListener('mousemove', onMove)
+        window.addEventListener('mouseup', onUp)
+        window.addEventListener('touchmove', onMove)
+        window.addEventListener('touchend', onUp)
+        return () => {
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+            window.removeEventListener('touchmove', onMove)
+            window.removeEventListener('touchend', onUp)
+        }
+    }, [])
+
+    const handleDragStart = (e) => {
+        e.preventDefault()
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY
+        dragStart.current = { mx: clientX, my: clientY, px: pos.x, py: pos.y }
+    }
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['fillRequestList', slug],
@@ -64,22 +96,17 @@ export function FillRequestList() {
         const reservedCount = laborRequests?.filter(req => req.reserved).length || 0
 
         const totalPositions = laborRequirement.needed_labor || 0
-        const positionsNeeded = totalPositions - confirmedCount - reservedCount
+        const positionsNeeded = totalPositions - confirmedCount - reservedCount - requestedCount
 
         if (isNaN(positionsNeeded) || positionsNeeded <= 0) {
-            addMessage(`No positions available to fill (Total: ${totalPositions}, Confirmed: ${confirmedCount}, Reserved: ${reservedCount})`, 'info')
+            addMessage(`No positions available to fill (Total: ${totalPositions}, Confirmed: ${confirmedCount}, Reserved: ${reservedCount}, Requested: ${requestedCount})`, 'info')
             return
         }
 
-        // Filter out workers with conflicts or already reserved
-        // Allow workers who are already "requested" to be selected again if needed
         const availableWorkers = workers.filter(worker => {
-            // Exclude if reserved
             if (worker.reserved) return false
-
-            // Exclude if they have any conflicts
+            if (worker.requested) return false
             if (worker.conflicts && worker.conflicts.length > 0) return false
-
             return true
         })
 
@@ -144,6 +171,13 @@ export function FillRequestList() {
         )
     }
 
+    const remaining = laborRequirement.needed_labor - laborRequests.length
+    const counterColor = remaining < 0
+        ? 'bg-danger dark:bg-dark-danger'
+        : remaining === 0
+        ? 'bg-success dark:bg-dark-success'
+        : 'bg-primary dark:bg-dark-primary'
+
     return (
         <>
         <LaborRequestList
@@ -168,6 +202,17 @@ export function FillRequestList() {
             >
                 {autoFillMutation.isPending ? 'Auto Filling...' : 'Auto Fill'}
             </button>
+        </div>
+        <div
+            style={{ position: 'fixed', left: pos.x, top: pos.y, zIndex: 50 }}
+            className={`flex flex-col items-center px-5 py-2 rounded-lg shadow-lg cursor-grab active:cursor-grabbing select-none ${counterColor}`}
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+        >
+            <span className="text-3xl font-bold text-white leading-none">{Math.abs(remaining)}</span>
+            <span className="text-xs font-medium text-white/80 uppercase tracking-wide mt-0.5">
+                {remaining < 0 ? 'overbooked' : `slot${remaining !== 1 ? 's' : ''} remaining`}
+            </span>
         </div>
         <FillRequestWorkerList
             workers={workers}

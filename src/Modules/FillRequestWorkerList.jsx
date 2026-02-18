@@ -4,7 +4,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '../api'
 import { useMessages } from '../contexts/MessageContext'
 
-export function FillRequestWorkerList({ 
+export function FillRequestWorkerList({
     workers,
     laborRequirementType,
 }) {
@@ -144,8 +144,8 @@ export function FillRequestWorkerList({
                         <label htmlFor="per_page" className="mr-4 text-text-tertiary dark:text-dark-text-tertiary">
                             Items per page:
                         </label>
-                        <select 
-                            name="per_page" 
+                        <select
+                            name="per_page"
                             id="per_page"
                             value={perPage}
                             onChange={(e) => {
