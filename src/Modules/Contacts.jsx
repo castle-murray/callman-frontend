@@ -57,6 +57,10 @@ export function Contacts() {
     const [deleteConfirm, setDeleteConfirm] = useState(null) // { type: 'worker'|'alt'|'primary', ...params }
     const [showCounters, setShowCounters] = useState(null) // worker id showing counters
     const [counterValues, setCounterValues] = useState({}) // { workerId: { ncns, cancelled } }
+    const [editingNotes, setEditingNotes] = useState(null) // worker id with notes open
+    const [notesForm, setNotesForm] = useState('')
+    const [editingSkills, setEditingSkills] = useState(null) // worker id with preferred skills open
+    const [skillsForm, setSkillsForm] = useState({ primary_skill: null, secondary_skill: null })
     const { addMessage } = useMessages()
 
     useEffect(() => {
@@ -324,6 +328,32 @@ export function Contacts() {
         return counterValues[workerId]?.[type] ?? defaultValue
     }
 
+    const saveSkillsMutation = useMutation({
+        mutationFn: ({ id, primary_skill, secondary_skill }) => api.patch('/workers/', { id, primary_skill, secondary_skill }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['contacts'])
+            setEditingSkills(null)
+            setSkillsForm({ primary_skill: null, secondary_skill: null })
+            addMessage('Preferred skills saved', 'success')
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to save skills', 'error')
+        }
+    })
+
+    const saveNotesMutation = useMutation({
+        mutationFn: ({ id, notes }) => api.patch('/workers/', { id, notes }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['contacts'])
+            setEditingNotes(null)
+            setNotesForm('')
+            addMessage('Notes saved', 'success')
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to save notes', 'error')
+        }
+    })
+
     if (isLoading) return <div>Loading...</div>
     if (error) return <div>Error: {error.message}</div>
     if (!data) return <div>No contacts</div>
@@ -555,6 +585,9 @@ export function Contacts() {
                                     )}
                                 </div>
                             )}
+                            {editingId !== contact.id && contact.notes && (
+                                <span className="mx-4 text-sm text-text-secondary dark:text-dark-text-secondary italic truncate max-w-xs">{contact.notes}</span>
+                            )}
                             {editingId !== contact.id && (
                                 <div className="relative inline-block ml-4">
                                     <button
@@ -566,7 +599,9 @@ export function Contacts() {
                                     <Dropdown
                                         items={[
                                             { text: 'Edit', onClick: () => { setEditingId(contact.id); setEditForm({name: contact.name, phone_number: contact.phone_number}); setLaborMenu(null) } },
+                                            { text: 'Notes', onClick: () => { setEditingNotes(contact.id); setNotesForm(contact.notes || ''); setLaborMenu(null) } },
                                             { text: 'Skills', onClick: () => { setEditingLaborTypes(contact.id); setLaborForm(contact.labor_types?.map(lt => lt.id) || []); setLaborMenu(null) } },
+                                            { text: 'Preferred Skill', onClick: () => { setEditingSkills(contact.id); setSkillsForm({ primary_skill: contact.primary_skill ?? null, secondary_skill: contact.secondary_skill ?? null }); setLaborMenu(null) } },
                                             { text: 'History', onClick: () => { navigate(`/dash/workers/${contact.slug}/history`); setLaborMenu(null) } },
                                             { text: showCounters === contact.id ? 'Hide Counters' : 'Show Counters', onClick: () => { setShowCounters(showCounters === contact.id ? null : contact.id); setLaborMenu(null) } },
                                             { text: 'Delete', onClick: () => { setDeleteConfirm({ type: 'worker', id: contact.id }); setLaborMenu(null) }, className: 'text-danger dark:text-dark-danger', disabled: deleteMutation.isLoading }
@@ -575,7 +610,7 @@ export function Contacts() {
                                         onClose={() => setLaborMenu(null)}
                                         selectedIndex={selectedIndex}
                                         onSelect={setSelectedIndex}
-                                        size="min-w-36"
+                                        size="min-w-40"
                                     />
                                 </div>
                             )}
@@ -633,6 +668,71 @@ export function Contacts() {
                                         <button onClick={() => { setEditingLaborTypes(null); setLaborForm([]) }} className="px-2 py-1 bg-gray-500 text-white rounded text-sm">Cancel</button>
                                     </div>
                                 </form>
+                            )}
+                            {editingNotes === contact.id && (
+                                <div className="mt-2 p-2 border rounded bg-card-bg dark:bg-dark-card-bg">
+                                    <h4 className="text-sm font-bold mb-2 text-text-heading dark:text-dark-text-primary">Notes</h4>
+                                    <textarea
+                                        value={notesForm}
+                                        onChange={(e) => setNotesForm(e.target.value)}
+                                        rows={3}
+                                        className="w-full p-1 border rounded bg-card-bg text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border dark:focus:ring-dark-primary text-sm resize-y"
+                                        placeholder="Add notes..."
+                                    />
+                                    <div className="mt-2 flex space-x-2">
+                                        <button
+                                            onClick={() => saveNotesMutation.mutate({ id: contact.id, notes: notesForm })}
+                                            disabled={saveNotesMutation.isPending}
+                                            className="px-2 py-1 bg-green-500 text-white rounded text-sm disabled:opacity-50"
+                                        >
+                                            {saveNotesMutation.isPending ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button onClick={() => { setEditingNotes(null); setNotesForm('') }} className="px-2 py-1 bg-gray-500 text-white rounded text-sm">Cancel</button>
+                                    </div>
+                                </div>
+                            )}
+                            {editingSkills === contact.id && (
+                                <div className="mt-2 p-2 border rounded bg-card-bg dark:bg-dark-card-bg">
+                                    <h4 className="text-sm font-bold mb-2 text-text-heading dark:text-dark-text-primary">Preferred Skill</h4>
+                                    <div className="flex gap-4 flex-wrap">
+                                        <label className="flex items-center gap-2 text-sm text-text-tertiary dark:text-dark-text-tertiary">
+                                            Primary
+                                            <select
+                                                value={skillsForm.primary_skill ?? ''}
+                                                onChange={(e) => setSkillsForm(f => ({ ...f, primary_skill: e.target.value || null }))}
+                                                className="p-1 border rounded bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border"
+                                            >
+                                                <option value="">— None —</option>
+                                                {laborTypesData.map(lt => (
+                                                    <option key={lt.id} value={lt.id}>{lt.name}</option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                        <label className="flex items-center gap-2 text-sm text-text-tertiary dark:text-dark-text-tertiary">
+                                            Secondary
+                                            <select
+                                                value={skillsForm.secondary_skill ?? ''}
+                                                onChange={(e) => setSkillsForm(f => ({ ...f, secondary_skill: e.target.value || null }))}
+                                                className="p-1 border rounded bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border"
+                                            >
+                                                <option value="">— None —</option>
+                                                {laborTypesData.map(lt => (
+                                                    <option key={lt.id} value={lt.id}>{lt.name}</option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div className="mt-2 flex space-x-2">
+                                        <button
+                                            onClick={() => saveSkillsMutation.mutate({ id: contact.id, primary_skill: skillsForm.primary_skill, secondary_skill: skillsForm.secondary_skill })}
+                                            disabled={saveSkillsMutation.isPending}
+                                            className="px-2 py-1 bg-green-500 text-white rounded text-sm disabled:opacity-50"
+                                        >
+                                            {saveSkillsMutation.isPending ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button onClick={() => setEditingSkills(null)} className="px-2 py-1 bg-gray-500 text-white rounded text-sm">Cancel</button>
+                                    </div>
+                                </div>
                             )}
                         </li>
                     ))}
