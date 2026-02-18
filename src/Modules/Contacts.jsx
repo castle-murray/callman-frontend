@@ -54,6 +54,7 @@ export function Contacts() {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [showImportModal, setShowImportModal] = useState(false)
     const [importFile, setImportFile] = useState(null)
+    const [showClearUnusedConfirm, setShowClearUnusedConfirm] = useState(false)
     const [deleteConfirm, setDeleteConfirm] = useState(null) // { type: 'worker'|'alt'|'primary', ...params }
     const [showCounters, setShowCounters] = useState(null) // worker id showing counters
     const [counterValues, setCounterValues] = useState({}) // { workerId: { ncns, cancelled } }
@@ -341,6 +342,18 @@ export function Contacts() {
         }
     })
 
+    const clearUnusedMutation = useMutation({
+        mutationFn: () => api.delete('/workers/clear-unused/'),
+        onSuccess: (response) => {
+            const count = response.data.deleted
+            addMessage(`Removed ${count} unused contact${count !== 1 ? 's' : ''}`, 'success')
+            queryClient.invalidateQueries(['contacts'])
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to clear unused contacts', 'error')
+        }
+    })
+
     const saveNotesMutation = useMutation({
         mutationFn: ({ id, notes }) => api.patch('/workers/', { id, notes }),
         onSuccess: () => {
@@ -427,6 +440,9 @@ export function Contacts() {
                         )}
                         <button onClick={() => setShowImportModal(true)} className={`px-4 py-2 bg-secondary dark:bg-dark-secondary text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             Import Contacts
+                        </button>
+                        <button onClick={() => setShowClearUnusedConfirm(true)} className={`px-4 py-2 bg-danger dark:bg-dark-danger text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                            Clear Unused
                         </button>
                         <button onClick={() => setFormState('entering')} className={`px-4 py-2 bg-primary text-white rounded transition-opacity duration-300 ${formState !== 'hidden' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             Add Worker
@@ -807,6 +823,15 @@ export function Contacts() {
                     {tooltip.text}
                 </div>
             )}
+        <ConfirmDialog
+            isOpen={showClearUnusedConfirm}
+            onClose={() => setShowClearUnusedConfirm(false)}
+            onConfirm={() => { clearUnusedMutation.mutate(); setShowClearUnusedConfirm(false) }}
+            title="Clear Unused Contacts"
+            message="This will permanently delete all contacts who have never been assigned to a labor request. This cannot be undone."
+            confirmWord="DELETE"
+            isPending={clearUnusedMutation.isPending}
+        />
         <ConfirmDialog
             isOpen={deleteConfirm?.type === 'worker'}
             onClose={() => setDeleteConfirm(null)}

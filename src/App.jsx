@@ -40,6 +40,7 @@ const SmsUsageReport = lazy(() => import('./Modules/SmsUsageReport').then(m => (
 
 // Lazy-loaded token-based public routes
 const ConfirmRequests = lazy(() => import('./Modules/ConfirmRequests').then(m => ({ default: m.ConfirmRequests })))
+const OwnerRegistration = lazy(() => import('./Modules/OwnerRegistration').then(m => ({ default: m.OwnerRegistration })))
 const StewardRegisterRedirect = lazy(() => import('./Modules/StewardRegisterRedirect').then(m => ({ default: m.StewardRegisterRedirect })))
 const UserRegistration = lazy(() => import('./Modules/UserRegistration').then(m => ({ default: m.UserRegistration })))
 const VerifyRegistration = lazy(() => import('./Modules/VerifyRegistration').then(m => ({ default: m.VerifyRegistration })))
@@ -57,6 +58,7 @@ const routes = [
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password/:token", element: <ResetPassword /> },
   { path: "event/:slug/confirm/:event_token", element: <ConfirmRequests /> },
+  { path: "owner/register/:token", element: <OwnerRegistration /> },
   { path: "steward/register/:token", element: <StewardRegisterRedirect /> },
   { path: "user/register/", element: <UserRegistration /> },
   { path: "verify-registration/", element: <VerifyRegistration /> },
