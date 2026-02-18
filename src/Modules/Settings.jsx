@@ -5,6 +5,56 @@ import { useMessages } from '../contexts/MessageContext'
 import { OwnerDashboard } from './OwnerDashboard'
 import api from '../api'
 
+function InviteOwnerSection() {
+    const { addMessage } = useMessages()
+    const [phone, setPhone] = useState('')
+
+    const inviteMutation = useMutation({
+        mutationFn: async (phone) => {
+            const response = await api.post('/admin/invite-owner/', { phone })
+            return response.data
+        },
+        onSuccess: (data) => {
+            addMessage(data.message || 'Invitation sent.', 'success')
+            setPhone('')
+        },
+        onError: (error) => {
+            addMessage(error.response?.data?.message || 'Failed to send invitation.', 'error')
+        },
+    })
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        inviteMutation.mutate(phone)
+    }
+
+    return (
+        <div className="bg-card-bg rounded-lg shadow-md dark:bg-dark-card-bg dark:shadow-dark-shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-1 text-text-heading dark:text-dark-text-primary">Invite Owner</h2>
+            <p className="text-text-secondary dark:text-dark-text-secondary text-sm mb-4">
+                Send an SMS invitation with a registration link to a new company owner.
+            </p>
+            <form onSubmit={handleSubmit} className="flex gap-2">
+                <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Phone number"
+                    required
+                    className="flex-1 p-2 border rounded bg-card-bg text-text-tertiary dark:bg-dark-card-bg dark:text-dark-text-tertiary dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary"
+                />
+                <button
+                    type="submit"
+                    disabled={inviteMutation.isPending}
+                    className="bg-primary text-dark-text-primary px-4 py-2 rounded hover:bg-primary-hover dark:bg-dark-primary dark:hover:bg-dark-primary-hover disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                    {inviteMutation.isPending ? 'Sending...' : 'Send Invite'}
+                </button>
+            </form>
+        </div>
+    )
+}
+
 export function Settings() {
     const { user, isLoading } = useUser()
     const { addMessage } = useMessages()
@@ -234,6 +284,11 @@ export function Settings() {
                     </button>
                 </form>
             </div>
+
+            {/* Invite Owner - only show if user is administrator */}
+            {user?.user?.isAdministrator && (
+                <InviteOwnerSection />
+            )}
 
             {/* Owner Dashboard Section - only show if user is owner */}
             {user?.user?.isOwner && (

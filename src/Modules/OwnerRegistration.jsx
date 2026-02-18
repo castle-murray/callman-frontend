@@ -21,7 +21,7 @@ export function OwnerRegistration() {
     const { data: inviteData, isLoading, isError } = useQuery({
         queryKey: ['ownerInvitation', token],
         queryFn: async () => {
-            const response = await api.get(`/api/owner/register/${token}/`)
+            const response = await api.get(`/owner/register/${token}/`)
             return response.data
         },
         retry: false,
@@ -29,7 +29,7 @@ export function OwnerRegistration() {
 
     const registerMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await api.post(`/api/owner/register/${token}/`, data)
+            const response = await api.post(`/owner/register/${token}/`, data)
             return response.data
         },
         onSuccess: (data) => {
